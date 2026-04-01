@@ -1,0 +1,1019 @@
+/* =============================================
+   OUTDOOR SIM - PIXEL ART SURVIVAL GAME CSS
+   ============================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+  --snow-white: #e8f4fd;
+  --ice-blue: #a8d8ea;
+  --deep-blue: #1a2a4a;
+  --pine-green: #2d5a27;
+  --warm-orange: #e8631a;
+  --ember-red: #c0392b;
+  --gold: #f1c40f;
+  --bark-brown: #6b3a2a;
+  --dark-bg: #0d1b2a;
+  --pixel-border: #fff;
+  --panel-bg: rgba(13, 27, 42, 0.92);
+  --btn-hover: #2980b9;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  image-rendering: pixelated;
+}
+
+body {
+  background: var(--dark-bg);
+  font-family: 'Press Start 2P', monospace;
+  color: var(--snow-white);
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* ---- TITLE SCREEN ---- */
+#title-screen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #0d1b2a 0%, #1a3a5c 50%, #0d1b2a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.title-content {
+  text-align: center;
+  position: relative;
+}
+
+.game-title {
+  font-size: 3rem;
+  color: var(--snow-white);
+  text-shadow: 0 0 20px var(--ice-blue), 4px 4px 0 #0d1b2a;
+  letter-spacing: 4px;
+  animation: title-glow 2s ease-in-out infinite alternate;
+  line-height: 1.4;
+}
+
+@keyframes title-glow {
+  from {
+    text-shadow: 0 0 10px var(--ice-blue), 4px 4px 0 #0d1b2a;
+  }
+
+  to {
+    text-shadow: 0 0 40px var(--ice-blue), 0 0 60px #6ec6e8, 4px 4px 0 #0d1b2a;
+  }
+}
+
+.subtitle {
+  font-size: 0.7rem;
+  color: var(--ice-blue);
+  letter-spacing: 6px;
+  margin: 12px 0 30px;
+}
+
+.title-desc {
+  margin: 20px 0 40px;
+  color: #aaa;
+  font-size: 0.55rem;
+  line-height: 2;
+}
+
+/* Snowflakes on title */
+.snowflakes {
+  position: absolute;
+  inset: -100px;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.snowflake {
+  position: absolute;
+  color: white;
+  font-size: 12px;
+  top: -20px;
+  animation: fall linear infinite;
+  opacity: 0.7;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(110vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* ---- BUTTONS ---- */
+.pixel-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.65rem;
+  padding: 12px 20px;
+  background: var(--deep-blue);
+  color: var(--snow-white);
+  border: 3px solid var(--snow-white);
+  cursor: pointer;
+  transition: all 0.1s;
+  outline: none;
+  display: inline-block;
+  margin: 4px;
+  text-transform: uppercase;
+  box-shadow: 4px 4px 0 #000;
+}
+
+.pixel-btn:hover {
+  background: var(--btn-hover);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #000;
+}
+
+.pixel-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #000;
+}
+
+.pixel-btn.danger {
+  border-color: var(--ember-red);
+  background: #4a1010;
+}
+
+.pixel-btn.danger:hover {
+  background: var(--ember-red);
+}
+
+.pixel-btn.success {
+  border-color: #2ecc71;
+  background: #0a3320;
+}
+
+.pixel-btn.success:hover {
+  background: #27ae60;
+}
+
+.pixel-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 4px 4px 0 #000;
+}
+
+#start-btn {
+  font-size: 0.8rem;
+  padding: 16px 32px;
+  background: var(--pine-green);
+  border-color: var(--gold);
+  color: var(--gold);
+  animation: btn-pulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes btn-pulse {
+  from {
+    box-shadow: 4px 4px 0 #000;
+  }
+
+  to {
+    box-shadow: 4px 4px 0 #000, 0 0 20px rgba(241, 196, 15, 0.4);
+  }
+}
+
+/* ---- GAME SCREEN ---- */
+#game-screen {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+}
+
+#game-screen.hidden {
+  display: none;
+}
+
+/* ---- HUD ---- */
+#hud {
+  background: var(--panel-bg);
+  border-bottom: 3px solid #2a4a6a;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+  height: 60px;
+  backdrop-filter: blur(4px);
+}
+
+.stat-block {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-label {
+  font-size: 0.4rem;
+  white-space: nowrap;
+  color: #aac;
+}
+
+.stat-bar {
+  width: 80px;
+  height: 12px;
+  background: #111;
+  border: 2px solid #555;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+.bar-fill.health {
+  background: linear-gradient(90deg, #e74c3c, #c0392b);
+}
+
+.bar-fill.hunger {
+  background: linear-gradient(90deg, #e67e22, #d35400);
+}
+
+.bar-fill.warmth {
+  background: linear-gradient(90deg, #3498db, #2980b9);
+}
+
+.stat-num {
+  font-size: 0.4rem;
+  width: 24px;
+  text-align: right;
+  color: var(--gold);
+}
+
+.hud-right {
+  margin-left: auto;
+  display: flex;
+  gap: 16px;
+}
+
+.hud-info {
+  font-size: 0.4rem;
+  color: var(--ice-blue);
+  white-space: nowrap;
+}
+
+/* ---- CANVAS ---- */
+#game-canvas {
+  flex: 1;
+  display: block;
+  cursor: crosshair;
+  image-rendering: pixelated;
+}
+
+/* ---- ACTION PANEL ---- */
+#action-panel {
+  background: var(--panel-bg);
+  border-top: 3px solid #2a4a6a;
+  padding: 8px 12px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  height: 120px;
+  flex-shrink: 0;
+}
+
+#action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-content: flex-start;
+  min-width: 280px;
+}
+
+#log-box {
+  flex: 1;
+  border: 2px solid #2a4a6a;
+  background: #050d1a;
+  height: 100px;
+  overflow-y: auto;
+  padding: 6px 8px;
+  font-size: 0.38rem;
+  line-height: 1.8;
+  color: #9ab;
+}
+
+#log-messages p {
+  margin: 0;
+  padding: 1px 0;
+}
+
+#log-messages p.important {
+  color: var(--gold);
+}
+
+#log-messages p.danger {
+  color: var(--ember-red);
+}
+
+#log-messages p.success {
+  color: #2ecc71;
+}
+
+#log-messages p.info {
+  color: var(--ice-blue);
+}
+
+/* ---- INVENTORY PANEL ---- */
+#inventory-panel {
+  position: fixed;
+  right: 0;
+  top: 60px;
+  width: 160px;
+  background: var(--panel-bg);
+  border-left: 3px solid #2a4a6a;
+  border-bottom: 3px solid #2a4a6a;
+  padding: 8px;
+  max-height: calc(100vh - 180px);
+  overflow-y: auto;
+}
+
+.panel-title {
+  font-size: 0.45rem;
+  color: var(--gold);
+  margin-bottom: 8px;
+  border-bottom: 2px solid #2a4a6a;
+  padding-bottom: 4px;
+}
+
+#inventory-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.inv-item {
+  background: #0d1b2a;
+  border: 2px solid #2a4a6a;
+  padding: 4px;
+  text-align: center;
+  font-size: 0.35rem;
+  cursor: default;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: border-color 0.2s;
+}
+
+.inv-item:hover {
+  border-color: var(--ice-blue);
+}
+
+.inv-item .item-icon {
+  font-size: 1.1rem;
+}
+
+.inv-item .item-name {
+  color: #aac;
+  line-height: 1.3;
+}
+
+.inv-item .item-qty {
+  color: var(--gold);
+}
+
+/* ---- OVERLAYS ---- */
+#hunting-overlay,
+#bonfire-overlay,
+#cook-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  backdrop-filter: blur(3px);
+}
+
+#hunting-overlay.hidden,
+#bonfire-overlay.hidden,
+#cook-overlay.hidden {
+  display: none;
+}
+
+#hunting-box,
+#bonfire-box,
+#cook-box {
+  background: var(--dark-bg);
+  border: 4px solid var(--ice-blue);
+  padding: 28px 32px;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 8px 8px 0 #000;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* ---- TRAVEL / SLEEP PROGRESS OVERLAY ---- */
+#travel-overlay,
+#sleep-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 12, 25, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 600;
+  backdrop-filter: blur(6px);
+}
+
+#travel-overlay.hidden,
+#sleep-overlay.hidden {
+  display: none;
+}
+
+#travel-box,
+#sleep-box {
+  background: var(--dark-bg);
+  border: 4px solid var(--ice-blue);
+  padding: 36px 44px;
+  max-width: 480px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 8px 8px 0 #000;
+}
+
+#travel-icon,
+#sleep-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  animation: float-icon 2s ease-in-out infinite alternate;
+}
+
+@keyframes float-icon {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-8px);
+  }
+}
+
+.travel-subtitle {
+  font-size: 0.42rem;
+  color: #778;
+  line-height: 2;
+  margin-bottom: 20px;
+}
+
+.travel-progress-track {
+  width: 100%;
+  height: 14px;
+  background: #0d1b2a;
+  border: 3px solid #2a4a6a;
+  margin: 14px 0;
+  overflow: hidden;
+}
+
+#travel-progress-bar,
+#sleep-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--ice-blue), #a8e6ff);
+  transition: width 1s linear;
+  box-shadow: 0 0 8px var(--ice-blue);
+}
+
+#sleep-progress-bar {
+  background: linear-gradient(90deg, #e8631a, #f1c40f);
+  box-shadow: 0 0 8px #e8631a;
+}
+
+.travel-timer {
+  font-size: 0.5rem;
+  color: var(--ice-blue);
+  margin: 6px 0 16px;
+}
+
+/* ---- CITY OVERLAY (full-screen menu) ---- */
+#city-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 700;
+  display: flex;
+  align-items: stretch;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#city-overlay.hidden {
+  display: none;
+}
+
+#city-bg-snow {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, #0d1b2a 0%, #0f2a40 40%, #0d1b2a 100%);
+  z-index: 0;
+}
+
+/* Atmospheric snowfall effect on city screen */
+#city-bg-snow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.3) 1px, transparent 1px);
+  background-size: 80px 80px, 140px 140px;
+  background-position: 0 0, 40px 40px;
+  animation: city-snow 20s linear infinite;
+  opacity: 0.4;
+}
+
+@keyframes city-snow {
+  from {
+    background-position: 0 0, 40px 40px;
+  }
+
+  to {
+    background-position: 0 400px, 40px 440px;
+  }
+}
+
+#city-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 20px 20px;
+}
+
+/* ---- City Header ---- */
+#city-header {
+  text-align: center;
+  padding: 28px 0 18px;
+  border-bottom: 2px solid rgba(100, 180, 255, 0.2);
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+#city-snowfall {
+  font-size: 1rem;
+  color: rgba(200, 230, 255, 0.5);
+  letter-spacing: 12px;
+  margin-bottom: 12px;
+  animation: sway 4s ease-in-out infinite alternate;
+}
+
+@keyframes sway {
+  from {
+    letter-spacing: 10px;
+    opacity: 0.4;
+  }
+
+  to {
+    letter-spacing: 16px;
+    opacity: 0.7;
+  }
+}
+
+#city-title {
+  font-size: 2rem;
+  color: var(--snow-white);
+  text-shadow: 0 0 20px var(--ice-blue), 4px 4px 0 #000;
+  margin-bottom: 6px;
+}
+
+#city-tagline {
+  font-size: 0.45rem;
+  color: var(--ice-blue);
+  letter-spacing: 4px;
+  margin-bottom: 12px;
+}
+
+#city-money-block {
+  display: inline-block;
+  font-size: 0.65rem;
+  color: var(--gold);
+  border: 2px solid var(--gold);
+  padding: 6px 16px;
+  background: rgba(241, 196, 15, 0.08);
+}
+
+/* ---- City Sections ---- */
+#city-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-width: 700px) {
+  #city-sections {
+    grid-template-columns: 1fr;
+  }
+}
+
+.city-section {
+  background: rgba(13, 27, 42, 0.9);
+  border: 3px solid #2a4a6a;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  transition: border-color 0.2s;
+}
+
+.city-section:hover {
+  border-color: rgba(100, 180, 255, 0.5);
+}
+
+.city-section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  border-bottom: 2px solid #1a3a5a;
+  padding-bottom: 12px;
+}
+
+.section-icon {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.section-title {
+  font-size: 0.75rem;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+
+.section-desc {
+  font-size: 0.38rem;
+  color: #778;
+  line-height: 1.8;
+}
+
+/* ---- Hotel ---- */
+#hotel-info {
+  margin: 8px 0 16px;
+  border: 2px solid #1a3a5a;
+  background: #070f1a;
+  padding: 10px 12px;
+}
+
+.hotel-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  font-size: 0.42rem;
+  border-bottom: 1px solid #1a3a5a;
+  color: #aac;
+}
+
+.hotel-stat-row:last-child {
+  border-bottom: none;
+}
+
+.hotel-val {
+  color: var(--gold);
+}
+
+.hotel-btn {
+  width: 100%;
+  margin-top: auto;
+}
+
+/* ---- Shop inside city ---- */
+#shop-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 0 0 10px;
+}
+
+.tab-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  padding: 8px 16px;
+  background: #0d1b2a;
+  color: #aaa;
+  border: 2px solid #2a4a6a;
+  cursor: pointer;
+  flex: 1;
+}
+
+.tab-btn.active {
+  background: var(--deep-blue);
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+#shop-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.shop-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  border: 2px solid #2a4a6a;
+  margin: 4px 0;
+  background: #0a1525;
+  gap: 8px;
+  font-size: 0.4rem;
+}
+
+.shop-item-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+
+.shop-item-icon {
+  font-size: 1.4rem;
+}
+
+.shop-item-name {
+  color: var(--snow-white);
+}
+
+.shop-item-desc {
+  color: #778;
+  margin-top: 2px;
+  font-size: 0.35rem;
+}
+
+.shop-item-price {
+  color: var(--gold);
+  white-space: nowrap;
+}
+
+/* ---- City Footer ---- */
+#city-footer {
+  text-align: center;
+  padding: 16px 0 0;
+  flex-shrink: 0;
+  border-top: 2px solid rgba(100, 180, 255, 0.2);
+  margin-top: 16px;
+}
+
+#leave-city-btn {
+  font-size: 0.6rem;
+  padding: 14px 28px;
+  border-color: var(--pine-green);
+  color: #7cca7c;
+  background: rgba(20, 60, 20, 0.6);
+}
+
+#leave-city-btn:hover {
+  background: #1a4a1a;
+}
+
+.pixel-title {
+  font-size: 1.1rem;
+  color: var(--gold);
+  margin-bottom: 16px;
+  text-shadow: 3px 3px 0 #000;
+}
+
+/* ---- HUNTING MINI-GAME ---- */
+#hunt-track {
+  position: relative;
+  width: 100%;
+  height: 50px;
+  background: #0a1f0a;
+  border: 3px solid #2a4a2a;
+  margin: 16px 0;
+  overflow: hidden;
+}
+
+#hunt-zone {
+  position: absolute;
+  top: 0;
+  width: 80px;
+  height: 100%;
+  background: rgba(46, 204, 113, 0.35);
+  border: 2px solid #2ecc71;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+#hunt-animal {
+  position: absolute;
+  top: 6px;
+  font-size: 1.8rem;
+  line-height: 1;
+  transition: left 0.05s linear;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+}
+
+#hunt-instruction {
+  font-size: 0.45rem;
+  color: #aac;
+  margin-bottom: 4px;
+  line-height: 1.8;
+}
+
+/* ---- SHOP ---- */
+#shop-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 12px 0;
+  justify-content: center;
+}
+
+.tab-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  padding: 8px 16px;
+  background: #0d1b2a;
+  color: #aaa;
+  border: 2px solid #2a4a6a;
+  cursor: pointer;
+}
+
+.tab-btn.active {
+  background: var(--deep-blue);
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+#shop-content {
+  min-height: 120px;
+  margin: 8px 0;
+}
+
+.shop-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  border: 2px solid #2a4a6a;
+  margin: 4px 0;
+  background: #0a1525;
+  gap: 8px;
+  font-size: 0.4rem;
+}
+
+.shop-item-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+
+.shop-item-icon {
+  font-size: 1.4rem;
+}
+
+.shop-item-name {
+  color: var(--snow-white);
+}
+
+.shop-item-desc {
+  color: #778;
+  margin-top: 2px;
+  font-size: 0.35rem;
+}
+
+.shop-item-price {
+  color: var(--gold);
+  white-space: nowrap;
+}
+
+/* ---- BONFIRE ---- */
+#bonfire-anim {
+  font-size: 4rem;
+  margin: 12px 0;
+  animation: flicker 0.5s infinite alternate;
+  filter: drop-shadow(0 0 12px #e8631a);
+}
+
+@keyframes flicker {
+  from {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px #e8631a);
+  }
+
+  to {
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 20px #e8631a) drop-shadow(0 0 40px #f1c40f);
+  }
+}
+
+#bonfire-status {
+  font-size: 0.45rem;
+  color: #aac;
+  margin: 8px 0;
+  line-height: 1.8;
+}
+
+/* ---- COOK ---- */
+.cook-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  border: 2px solid #2a4a6a;
+  margin: 4px 0;
+  background: #0a1525;
+  font-size: 0.45rem;
+}
+
+/* ---- DEATH SCREEN ---- */
+#death-screen {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 5, 5, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 900;
+}
+
+#death-screen.hidden {
+  display: none;
+}
+
+.death-content {
+  text-align: center;
+}
+
+.death-title {
+  font-size: 2.5rem;
+  color: var(--ember-red);
+  text-shadow: 0 0 30px var(--ember-red), 4px 4px 0 #000;
+  animation: death-pulse 1s ease-in-out infinite alternate;
+  margin-bottom: 24px;
+}
+
+@keyframes death-pulse {
+  from {
+    text-shadow: 0 0 10px var(--ember-red), 4px 4px 0 #000;
+  }
+
+  to {
+    text-shadow: 0 0 50px var(--ember-red), 4px 4px 0 #000;
+  }
+}
+
+.death-reason {
+  font-size: 0.55rem;
+  color: #aaa;
+  margin-bottom: 12px;
+  line-height: 2;
+}
+
+#death-screen p {
+  font-size: 0.5rem;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+/* ---- TOOLTIP ---- */
+.tooltip-game {
+  position: fixed;
+  background: var(--dark-bg);
+  border: 2px solid var(--ice-blue);
+  padding: 6px 10px;
+  font-size: 0.35rem;
+  color: var(--snow-white);
+  pointer-events: none;
+  z-index: 999;
+  max-width: 160px;
+  line-height: 1.8;
+}
+
+/* ---- SCROLLBAR ---- */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a1525;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a4a6a;
+}
+
+.hidden {
+  display: none !important;
+}

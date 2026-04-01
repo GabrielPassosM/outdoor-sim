@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Outdoor Sim — A Snow Survival Game</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+</head>
+
+<body>
+  <!-- TITLE SCREEN -->
+  <div id="title-screen">
+    <div class="title-content">
+      <div class="snowflakes" id="snowflakes"></div>
+      <h1 class="game-title">❄ OUTDOOR SIM ❄</h1>
+      <p class="subtitle">A SNOW SURVIVAL EXPERIENCE</p>
+      <div class="title-desc">
+        <p>Hunt. Chop. Survive.</p>
+        <p>The cold does not forgive.</p>
+      </div>
+      <button id="start-btn" class="pixel-btn">▶ START GAME</button>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="game-screen" class="hidden">
+    <!-- HUD -->
+    <div id="hud">
+      <div class="stat-block">
+        <span class="stat-label">❤ HEALTH</span>
+        <div class="stat-bar">
+          <div id="health-bar" class="bar-fill health"></div>
+        </div>
+        <span id="health-val" class="stat-num">100</span>
+      </div>
+      <div class="stat-block">
+        <span class="stat-label">🍖 HUNGER</span>
+        <div class="stat-bar">
+          <div id="hunger-bar" class="bar-fill hunger"></div>
+        </div>
+        <span id="hunger-val" class="stat-num">100</span>
+      </div>
+      <div class="stat-block">
+        <span class="stat-label">🔥 WARMTH</span>
+        <div class="stat-bar">
+          <div id="warmth-bar" class="bar-fill warmth"></div>
+        </div>
+        <span id="warmth-val" class="stat-num">100</span>
+      </div>
+      <div class="hud-right">
+        <div class="hud-info">💰 <span id="money-display">0</span> coins</div>
+        <div class="hud-info">📍 <span id="location-display">WILDERNESS</span></div>
+        <div class="hud-info">⏱ Day <span id="day-display">1</span></div>
+      </div>
+    </div>
+
+    <!-- GAME CANVAS -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- ACTION PANEL -->
+    <div id="action-panel">
+      <div id="action-buttons">
+        <!-- Populated dynamically -->
+      </div>
+      <div id="log-box">
+        <div id="log-messages"></div>
+      </div>
+    </div>
+
+    <!-- INVENTORY PANEL -->
+    <div id="inventory-panel">
+      <h3 class="panel-title">🎒 INVENTORY</h3>
+      <div id="inventory-grid"></div>
+    </div>
+  </div>
+
+  <!-- TRAVEL PROGRESS OVERLAY -->
+  <div id="travel-overlay" class="hidden">
+    <div id="travel-box">
+      <div id="travel-icon">🛷</div>
+      <h2 class="pixel-title" id="travel-title">TRAVELLING TO CITY</h2>
+      <p id="travel-subtitle">The path through the snow is long...</p>
+      <div class="travel-progress-track">
+        <div id="travel-progress-bar"></div>
+      </div>
+      <p id="travel-timer-text" class="travel-timer">60s remaining</p>
+      <button id="travel-cancel-btn" class="pixel-btn danger">✖ CANCEL TRIP</button>
+    </div>
+  </div>
+
+  <!-- SLEEP PROGRESS OVERLAY -->
+  <div id="sleep-overlay" class="hidden">
+    <div id="sleep-box">
+      <div id="sleep-icon">😴</div>
+      <h2 class="pixel-title">SLEEPING AT THE INN</h2>
+      <p class="travel-subtitle">Recovering... do not disturb.</p>
+      <div class="travel-progress-track">
+        <div id="sleep-progress-bar"></div>
+      </div>
+      <p id="sleep-timer-text" class="travel-timer">5:00 remaining</p>
+    </div>
+  </div>
+
+  <!-- CITY OVERLAY (full-screen menu) -->
+  <div id="city-overlay" class="hidden">
+    <div id="city-bg-snow"></div>
+    <div id="city-content">
+
+      <!-- City Header -->
+      <div id="city-header">
+        <div id="city-snowfall">❄ ❅ ❆ ❄ ❅ ❆</div>
+        <h1 id="city-title">🏙️ FROSTHOLM</h1>
+        <p id="city-tagline">A safe haven from the cold</p>
+        <div id="city-money-block">💰 <span id="city-money">0</span> coins</div>
+      </div>
+
+      <!-- City Sections -->
+      <div id="city-sections">
+
+        <!-- Market -->
+        <div class="city-section" id="section-market">
+          <div class="city-section-header">
+            <span class="section-icon">🏪</span>
+            <div>
+              <h2 class="section-title">TRADING POST</h2>
+              <p class="section-desc">Buy supplies. Sell your catches.</p>
+            </div>
+          </div>
+          <div id="shop-tabs">
+            <button class="tab-btn active" data-tab="sell">SELL</button>
+            <button class="tab-btn" data-tab="buy">BUY</button>
+          </div>
+          <div id="shop-content"></div>
+        </div>
+
+        <!-- Hotel -->
+        <div class="city-section" id="section-hotel">
+          <div class="city-section-header">
+            <span class="section-icon">🏨</span>
+            <div>
+              <h2 class="section-title">THE FROZEN INN</h2>
+              <p class="section-desc">Rest and fully recover all stats.</p>
+            </div>
+          </div>
+          <div id="hotel-info">
+            <div class="hotel-stat-row">
+              <span>💰 Cost</span><span class="hotel-val">2 coins</span>
+            </div>
+            <div class="hotel-stat-row">
+              <span>⏱ Duration</span><span class="hotel-val">5 minutes</span>
+            </div>
+            <div class="hotel-stat-row">
+              <span>❤ Recovery</span><span class="hotel-val">Full restore</span>
+            </div>
+          </div>
+          <button id="sleep-btn" class="pixel-btn success hotel-btn">🛌 CHECK IN — 2 coins</button>
+        </div>
+
+      </div>
+
+      <!-- Leave City -->
+      <div id="city-footer">
+        <button id="leave-city-btn" class="pixel-btn">🌲 HEAD BACK INTO THE WILD</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HUNTING MINI-GAME OVERLAY -->
+  <div id="hunting-overlay" class="hidden">
+    <div id="hunting-box">
+      <h2 class="pixel-title">🦌 HUNTING</h2>
+      <p id="hunt-instruction">Wait for the animal to enter the zone, then SHOOT!</p>
+      <div id="hunt-track">
+        <div id="hunt-zone"></div>
+        <div id="hunt-animal"></div>
+      </div>
+      <button id="shoot-btn" class="pixel-btn danger">🏹 SHOOT</button>
+      <button id="hunt-cancel-btn" class="pixel-btn">✖ CANCEL</button>
+    </div>
+  </div>
+
+  <!-- BONFIRE OVERLAY -->
+  <div id="bonfire-overlay" class="hidden">
+    <div id="bonfire-box">
+      <h2 class="pixel-title">🔥 BONFIRE</h2>
+      <div id="bonfire-anim">🔥</div>
+      <p id="bonfire-status">Fire is out. Add wood to light it!</p>
+      <p>Wood logs: <span id="bonfire-wood-count">0</span></p>
+      <button id="add-wood-btn" class="pixel-btn">🪵 Add Wood (+1)</button>
+      <button id="bonfire-close-btn" class="pixel-btn">✖ CLOSE</button>
+    </div>
+  </div>
+
+  <!-- COOK OVERLAY -->
+  <div id="cook-overlay" class="hidden">
+    <div id="cook-box">
+      <h2 class="pixel-title">🍳 COOKING PAN</h2>
+      <p>Choose an animal to cook:</p>
+      <div id="cook-options"></div>
+      <button id="cook-close-btn" class="pixel-btn">✖ CLOSE</button>
+    </div>
+  </div>
+
+  <!-- DEATH SCREEN -->
+  <div id="death-screen" class="hidden">
+    <div class="death-content">
+      <h1 class="death-title">YOU PERISHED</h1>
+      <p id="death-reason" class="death-reason"></p>
+      <p>Survived <span id="death-days">0</span> days</p>
+      <button id="restart-btn" class="pixel-btn danger">↺ TRY AGAIN</button>
+    </div>
+  </div>
+
+  <script type="module" src="game.js"></script>
+</body>
+
+</html>
