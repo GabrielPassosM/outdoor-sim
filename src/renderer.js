@@ -66,12 +66,6 @@ export function render(G) {
         }
     }
 
-    // Draw city direction hint (left edge arrow)
-    ctx.font = '7px "Press Start 2P", monospace';
-    ctx.textAlign = 'left';
-    ctx.fillStyle = 'rgba(100,180,255,0.6)';
-    ctx.fillText('◀ CITY →', 8, 20);
-
     // Draw animals
     G.animals.forEach(a => {
         const sx = a.x - cx;
@@ -86,10 +80,28 @@ export function render(G) {
     // Draw player
     renderPlayer(G, ctx, cx, cy);
 
+    // Draw placing tent
+    if (G.tent.placing) {
+        const sx = G.tent.col * TILE - cx;
+        const sy = G.tent.row * TILE - cy;
+        ctx.globalAlpha = 0.5;
+        ctx.font = `${TILE - 2}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⛺', sx + TILE / 2, sy + TILE / 2);
+        ctx.globalAlpha = 1.0;
+        
+        const pct = 1 - (G.tent.timer / G.tent.duration);
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(sx - 4, sy - 8, TILE + 8, 4);
+        ctx.fillStyle = '#f1c40f';
+        ctx.fillRect(sx - 4, sy - 8, (TILE + 8) * pct, 4);
+    }
+
     // Draw bonfire glow if active
     if (G.bonfire.lit) {
-        const bx = G.world.campCol * TILE + TILE * 2 - cx;
-        const by = G.world.campRow * TILE - cy;
+        const bx = G.bonfire.col * TILE + TILE / 2 - cx;
+        const by = G.bonfire.row * TILE + TILE / 2 - cy;
         const glow = ctx.createRadialGradient(bx, by, 5, bx, by, 80);
         glow.addColorStop(0, 'rgba(232,99,26,0.4)');
         glow.addColorStop(1, 'rgba(232,99,26,0)');
@@ -169,9 +181,11 @@ export function renderMinimap(G, ctx, W, H) {
         }
     }
 
-    // Draw camp blip
-    ctx.fillStyle = '#f1c40f';
-    ctx.fillRect(mapX + G.world.campCol, mapY + G.world.campRow, 4, 4);
+    // Draw tent blip
+    if (G.tent.placed || G.tent.placing) {
+        ctx.fillStyle = '#f1c40f';
+        ctx.fillRect(mapX + G.tent.col, mapY + G.tent.row, 4, 4);
+    }
 
     // Draw player blip
     const pc = Math.floor(G.player.x / TILE);

@@ -5,11 +5,9 @@ export function generateWorld() {
         Array.from({ length: MAP_COLS }, () => TILE_TYPE.SNOW)
     );
 
-    // Camp area: tent and bonfire spot near left edge
+    // Camp area: small clearing near left edge
     const campCol = 5;
     const campRow = Math.floor(MAP_ROWS / 2);
-    map[campRow][campCol] = TILE_TYPE.TENT;
-    map[campRow][campCol + 2] = TILE_TYPE.BONFIRE;
 
     // Small camp clearing
     for (let dr = -2; dr <= 2; dr++) {

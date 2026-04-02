@@ -4,7 +4,7 @@ import {
 
 import { generateWorld } from './src/world.js';
 import { setupCity } from './src/city.js';
-import { setupHuntingGame, setupBonfire, setupCook, startHunt, chopWood, openBonfire, openCook } from './src/wilderness.js';
+import { setupHuntingGame, setupBonfire, setupCook, startHunt, chopWood, openBonfire, openCook, placeTent, buildBonfire } from './src/wilderness.js';
 import { setupSnowflakes, log, addNotif, updateActionButtons, updateHUD, updateInventory } from './src/ui.js';
 import { render } from './src/renderer.js';
 import { ANIMALS } from './src/data.js';
@@ -24,7 +24,8 @@ class Game {
     this.player = this.createPlayer();
     this.animals = [];
     this.hunting = { active: false, type: null, animalX: 0, dir: 1, speed: 0, timer: 0, result: null };
-    this.bonfire = { lit: false, timer: 0 };
+    this.tent = { placed: false, placing: false, col: 0, row: 0, timer: 0, duration: 180 };
+    this.bonfire = { lit: false, timer: 0, placed: false, col: 0, row: 0 };
     this.day = 1;
     this.dayTimer = 0;
     this.dayLength = 120; // seconds
@@ -55,7 +56,7 @@ class Game {
       w: 12, h: 14,
       health: 100, hunger: 100, warmth: 100,
       money: 20,
-      inventory: { rabbit: 0, deer: 0, fox: 0, cooked_rabbit: 0, cooked_deer: 0, cooked_fox: 0 },
+      inventory: { tent: 1, rabbit: 0, deer: 0, fox: 0, cooked_rabbit: 0, cooked_deer: 0, cooked_fox: 0 },
       wood: 5,
       arrows: 10,
       hasCoat: false,
@@ -66,9 +67,16 @@ class Game {
   }
 
   resize() {
-    const panel = 120, hud = 60;
-    this.canvas.width = window.innerWidth - 160; // minus inventory panel
-    this.canvas.height = window.innerHeight - panel - hud;
+    const panel = 160, hud = 90;
+    const zoom = 2.5;
+    const w = window.innerWidth - 240; // minus inventory panel
+    const h = window.innerHeight - panel - hud;
+    
+    this.canvas.style.width = w + 'px';
+    this.canvas.style.height = h + 'px';
+    
+    this.canvas.width = Math.floor(w / zoom);
+    this.canvas.height = Math.floor(h / zoom);
   }
 
   // ─── INPUT ───────────────────────────────────
@@ -81,6 +89,8 @@ class Game {
         if (e.key.toLowerCase() === 'x') chopWood(this);
         if (e.key.toLowerCase() === 'f') openBonfire(this);
         if (e.key.toLowerCase() === 'c') openCook(this);
+        if (e.key.toLowerCase() === 't') placeTent(this);
+        if (e.key.toLowerCase() === 'b') buildBonfire(this);
       }
 
       if (e.key === ' ') e.preventDefault();
@@ -263,8 +273,8 @@ class Game {
     if (p.hasCoat) coldRate *= 0.7;
     if (this.bonfire.lit) {
       const distToBonfire = Math.hypot(
-        p.x - this.world.campCol * TILE,
-        p.y - this.world.campRow * TILE
+        p.x - this.bonfire.col * TILE,
+        p.y - this.bonfire.row * TILE
       );
       if (distToBonfire < 80) {
         p.warmth = Math.min(100, p.warmth + 8 * dt);
@@ -272,6 +282,20 @@ class Game {
       }
     }
     p.warmth -= coldRate * dt;
+
+    // Tent Placing Timer
+    if (this.tent.placing) {
+      this.tent.timer -= dt;
+      if (this.tent.timer <= 0) {
+        this.tent.placing = false;
+        this.tent.placed = true;
+        this.tent.timer = 0;
+        this.world.map[this.tent.row][this.tent.col] = 9; // TILE_TYPE.TENT
+        log('Your tent has been built!', 'success');
+        addNotif(this, '⛺ Built!', '#f1c40f');
+        import('./src/ui.js').then(ui => ui.updateActionButtons(this));
+      }
+    }
 
     // Bonfire timer
     if (this.bonfire.lit) {

@@ -111,8 +111,8 @@ body {
 /* ---- BUTTONS ---- */
 .pixel-btn {
   font-family: 'Press Start 2P', monospace;
-  font-size: 0.65rem;
-  padding: 12px 20px;
+  font-size: 0.8rem;
+  padding: 16px 28px;
   background: var(--deep-blue);
   color: var(--snow-white);
   border: 3px solid var(--snow-white);
@@ -196,30 +196,30 @@ body {
 #hud {
   background: var(--panel-bg);
   border-bottom: 3px solid #2a4a6a;
-  padding: 8px 16px;
+  padding: 12px 24px;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 30px;
   flex-shrink: 0;
-  height: 60px;
+  height: 90px;
   backdrop-filter: blur(4px);
 }
 
 .stat-block {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
 }
 
 .stat-label {
-  font-size: 0.4rem;
+  font-size: 0.6rem;
   white-space: nowrap;
   color: #aac;
 }
 
 .stat-bar {
-  width: 80px;
-  height: 12px;
+  width: 120px;
+  height: 18px;
   background: #111;
   border: 2px solid #555;
   overflow: hidden;
@@ -243,8 +243,8 @@ body {
 }
 
 .stat-num {
-  font-size: 0.4rem;
-  width: 24px;
+  font-size: 0.6rem;
+  width: 36px;
   text-align: right;
   color: var(--gold);
 }
@@ -252,11 +252,11 @@ body {
 .hud-right {
   margin-left: auto;
   display: flex;
-  gap: 16px;
+  gap: 24px;
 }
 
 .hud-info {
-  font-size: 0.4rem;
+  font-size: 0.6rem;
   color: var(--ice-blue);
   white-space: nowrap;
 }
@@ -273,30 +273,30 @@ body {
 #action-panel {
   background: var(--panel-bg);
   border-top: 3px solid #2a4a6a;
-  padding: 8px 12px;
+  padding: 12px 18px;
   display: flex;
-  gap: 12px;
+  gap: 18px;
   align-items: flex-start;
-  height: 120px;
+  height: 160px;
   flex-shrink: 0;
 }
 
 #action-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 8px;
   align-content: flex-start;
-  min-width: 280px;
+  min-width: 400px;
 }
 
 #log-box {
   flex: 1;
   border: 2px solid #2a4a6a;
   background: #050d1a;
-  height: 100px;
+  height: 140px;
   overflow-y: auto;
-  padding: 6px 8px;
-  font-size: 0.38rem;
+  padding: 10px 12px;
+  font-size: 0.55rem;
   line-height: 1.8;
   color: #9ab;
 }
@@ -326,43 +326,43 @@ body {
 #inventory-panel {
   position: fixed;
   right: 0;
-  top: 60px;
-  width: 160px;
+  top: 90px;
+  width: 240px;
   background: var(--panel-bg);
   border-left: 3px solid #2a4a6a;
   border-bottom: 3px solid #2a4a6a;
-  padding: 8px;
-  max-height: calc(100vh - 180px);
+  padding: 12px;
+  max-height: calc(100vh - 250px);
   overflow-y: auto;
 }
 
 .panel-title {
-  font-size: 0.45rem;
+  font-size: 0.7rem;
   color: var(--gold);
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   border-bottom: 2px solid #2a4a6a;
-  padding-bottom: 4px;
+  padding-bottom: 8px;
 }
 
 #inventory-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px;
+  gap: 8px;
 }
 
 .inv-item {
   background: #0d1b2a;
   border: 2px solid #2a4a6a;
-  padding: 4px;
+  padding: 6px;
   text-align: center;
-  font-size: 0.35rem;
+  font-size: 0.5rem;
   cursor: default;
-  min-height: 44px;
+  min-height: 60px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 4px;
   transition: border-color 0.2s;
 }
 
@@ -371,7 +371,7 @@ body {
 }
 
 .inv-item .item-icon {
-  font-size: 1.1rem;
+  font-size: 1.5rem;
 }
 
 .inv-item .item-name {

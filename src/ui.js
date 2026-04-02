@@ -67,7 +67,7 @@ export function updateInventory(G) {
 
     const items = [
         { icon: '🪓', name: p.steelAxe ? 'Steel Axe' : 'Axe', qty: null },
-        { icon: '⛺', name: 'Tent', qty: null },
+        { icon: '⛺', name: 'Tent', qty: p.inventory.tent },
         { icon: '🍳', name: 'Pan', qty: null },
         { icon: '🏹', name: 'Arrows', qty: p.arrows },
         { icon: '🪵', name: 'Wood', qty: p.wood },
@@ -89,8 +89,9 @@ export function updateInventory(G) {
     });
 }
 
-import { startHunt, chopWood, openBonfire, openCook } from './wilderness.js';
+import { startHunt, chopWood, openBonfire, openCook, placeTent, buildBonfire } from './wilderness.js';
 import { travelToCity } from './city.js';
+import { TILE } from './constants.js';
 
 export function updateActionButtons(G) {
     const p = G.player;
@@ -101,8 +102,8 @@ export function updateActionButtons(G) {
         const b = document.createElement('button');
         b.className = `pixel-btn ${cls}`;
         b.innerHTML = label;
-        b.style.fontSize = '0.38rem';
-        b.style.padding = '6px 8px';
+        b.style.fontSize = '0.6rem';
+        b.style.padding = '12px 16px';
         b.disabled = disabled;
         b.title = title;
         b.addEventListener('click', fn);
@@ -110,15 +111,30 @@ export function updateActionButtons(G) {
     };
 
     // Wilderness actions
+    if (p.inventory.tent > 0 && !G.tent.placing && !G.tent.placed) {
+        const t = G.world.map[Math.floor(p.y/TILE)][Math.floor(p.x/TILE)];
+        const isSnow = t === 0 || t === 7; // SNOW or CAMP
+        btn(`[T] ⛺ Place Tent<br><span style="font-size:0.45rem;color:#aaa">(3 real mins)</span>`, 'success', () => placeTent(G), !isSnow, isSnow ? 'Start building your base camp' : 'Must be on snow');
+    }
+
+    if (G.tent.placed && !G.bonfire.placed) {
+        const distToTent = Math.hypot(p.x - G.tent.col * TILE, p.y - G.tent.row * TILE);
+        const nearTent = distToTent < 80;
+        btn(`[B] 🔥 Build Bonfire<br><span style="font-size:0.45rem;color:#aaa">(Costs 5 wood)</span>`, 'success', () => buildBonfire(G), !nearTent || p.wood < 5, 'Requires 5 wood. Must be near your tent.');
+    }
+
     btn(`[H] 🏹 Hunt`, '', () => startHunt(G), p.arrows <= 0, 'Hunt an animal (needs arrows)');
     btn(`[X] 🪵 Chop`, '', () => chopWood(G), false, 'Chop nearby trees for wood');
-    btn(`[F] 🔥 Bonfire`, '', () => openBonfire(G), false, 'Manage your bonfire');
+    
+    if (G.bonfire.placed) {
+        btn(`[F] 🔥 Bonfire`, '', () => openBonfire(G), false, 'Manage your bonfire');
+    }
     btn(`[C] 🍳 Cook`, '', () => openCook(G), false, 'Cook and eat food');
 
     // Travel to city
     const canTravel = p.hunger >= 20 && !G.travel.active && !G.sleeping.active;
     btn(
-        `🏙️ GO TO CITY<br><span style="font-size:0.3rem;color:#aaa">(costs 20 hunger, 1 min)</span>`,
+        `🏙️ GO TO CITY<br><span style="font-size:0.45rem;color:#aaa">(costs 20 hunger, 1 min)</span>`,
         'success',
         () => travelToCity(G),
         !canTravel,

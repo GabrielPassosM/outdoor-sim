@@ -1,6 +1,6 @@
 import { TILE, MAP_ROWS, MAP_COLS, TILE_TYPE } from './constants.js';
 import { ANIMALS } from './data.js';
-import { updateHUD, updateInventory, log, addNotif } from './ui.js';
+import { updateHUD, updateInventory, log, addNotif, updateActionButtons } from './ui.js';
 
 // ─── HUNTING MINI-GAME ───────────────────────
 export function setupHuntingGame(G) {
@@ -245,4 +245,58 @@ export function openCook(G) {
     }
 
     document.getElementById('cook-overlay').classList.remove('hidden');
+}
+
+export function placeTent(G) {
+    if (G.player.inventory.tent <= 0 || G.tent.placing || G.tent.placed) return;
+    const px = Math.floor(G.player.x / TILE);
+    const py = Math.floor(G.player.y / TILE);
+    const t = G.world.map[py][px];
+    if (t !== TILE_TYPE.SNOW && t !== TILE_TYPE.CAMP) {
+        log("Must be placed on flat snow!", 'danger');
+        return;
+    }
+    
+    // Start placing
+    G.player.inventory.tent--;
+    G.tent.placing = true;
+    G.tent.timer = G.tent.duration; // 180s
+    G.tent.col = px;
+    G.tent.row = py;
+    
+    log(`Started building tent! It will take 3 minutes.`, 'important');
+    addNotif(G, 'Building Tent...', '#3498db');
+    updateInventory(G);
+    updateActionButtons(G);
+}
+
+export function buildBonfire(G) {
+    if (!G.tent.placed || G.bonfire.placed || G.player.wood < 5) return;
+    const px = Math.floor(G.player.x / TILE);
+    const py = Math.floor(G.player.y / TILE);
+    
+    // Nearest to tent check
+    const distToTent = Math.hypot(G.player.x - G.tent.col * TILE, G.player.y - G.tent.row * TILE);
+    if (distToTent >= 80) {
+        log("Must build bonfire near your tent!", 'danger');
+        return;
+    }
+
+    const t = G.world.map[py][px];
+    if (t !== TILE_TYPE.SNOW && t !== TILE_TYPE.CAMP && t !== TILE_TYPE.TENT) {
+        log("Cannot build bonfire here!", 'danger');
+        return;
+    }
+
+    // Build
+    G.player.wood -= 5;
+    G.world.map[py][px] = TILE_TYPE.BONFIRE;
+    G.bonfire.placed = true;
+    G.bonfire.col = px;
+    G.bonfire.row = py;
+
+    log(`Bonfire built! You can now add wood to light it.`, 'success');
+    addNotif(G, 'Bonfire Built!', '#e67e22');
+    updateInventory(G);
+    updateActionButtons(G);
 }
