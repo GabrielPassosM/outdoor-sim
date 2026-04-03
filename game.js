@@ -4,7 +4,7 @@ import {
 
 import { generateWorld } from './src/world.js';
 import { setupCity } from './src/city.js';
-import { setupHuntingGame, setupBonfire, setupCook, startHunt, chopWood, openBonfire, openCook, placeTent, buildBonfire } from './src/wilderness.js';
+import { setupHuntingGame, setupBonfire, setupCook, startHunt, chopWood, openBonfire, openCook, placeTent, buildBonfire, shootAnimal } from './src/wilderness.js';
 import { setupSnowflakes, log, addNotif, updateActionButtons, updateHUD, updateInventory } from './src/ui.js';
 import { render } from './src/renderer.js';
 import { ANIMALS } from './src/data.js';
@@ -23,8 +23,9 @@ class Game {
     this.world = generateWorld();
     this.player = this.createPlayer();
     this.animals = [];
+    this.animalSpawnTimer = 0;
     this.hunting = { active: false, type: null, animalX: 0, dir: 1, speed: 0, timer: 0, result: null };
-    this.tent = { placed: false, placing: false, col: 0, row: 0, timer: 0, duration: 180 };
+    this.tent = { placed: false, placing: false, col: 0, row: 0, timer: 0, duration: 120 };
     this.bonfire = { lit: false, timer: 0, placed: false, col: 0, row: 0 };
     this.day = 1;
     this.dayTimer = 0;
@@ -93,7 +94,12 @@ class Game {
         if (e.key.toLowerCase() === 'b') buildBonfire(this);
       }
 
-      if (e.key === ' ') e.preventDefault();
+      if (e.key === ' ') {
+        e.preventDefault();
+        if (this.hunting.active) {
+            shootAnimal(this);
+        }
+      }
     });
     window.addEventListener('keyup', e => {
       this.keys[e.key.toLowerCase()] = false;
@@ -112,17 +118,35 @@ class Game {
   // ─── ANIMALS ─────────────────────────────────
   spawnAnimals() {
     const { cityEnd } = this.world;
-    this.animals = [];
-    for (let i = 0; i < 12; i++) {
+    if (!this.canvas) return; // Safe check
+    
+    const W = this.canvas.width;
+    const H = this.canvas.height;
+    
+    // Remove animals off-screen
+    this.animals = this.animals.filter(a => {
+        const sx = a.x - this.camera.x;
+        const sy = a.y - this.camera.y;
+        return sx >= -100 && sx <= W + 100 && sy >= -100 && sy <= H + 100;
+    });
+
+    // Rare spawn: max 2
+    if (this.animals.length >= 2) return;
+    
+    const toSpawn = 1 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < toSpawn; i++) {
+      if (this.animals.length >= 2) break;
       const types = Object.keys(ANIMALS);
       const type = types[Math.floor(Math.random() * types.length)];
       const def = ANIMALS[type];
-      // Only spawn in wilderness
-      const col = cityEnd + 5 + Math.floor(Math.random() * (MAP_COLS - cityEnd - 10));
-      const row = 3 + Math.floor(Math.random() * (MAP_ROWS - 6));
+      
+      const rx = this.camera.x + Math.random() * W;
+      const ry = this.camera.y + Math.random() * H;
+      if (rx < (cityEnd + 3) * TILE) continue; // Not in city
+      
       this.animals.push({
         type, def,
-        x: col * TILE, y: row * TILE,
+        x: rx, y: ry,
         vx: (Math.random() * 2 - 1) * def.speed * 30,
         vy: (Math.random() * 2 - 1) * def.speed * 30,
         roamTimer: 2 + Math.random() * 3,
@@ -258,7 +282,6 @@ class Game {
         this.dayTimer = 0;
         this.day++;
         log(`☀ Day ${this.day} begins.`, 'important');
-        this.spawnAnimals();
       }
       return; // No stat drains in city
     }
@@ -332,7 +355,15 @@ class Game {
       this.dayTimer = 0;
       this.day++;
       log(`☀ Day ${this.day} begins.`, 'important');
-      this.spawnAnimals();
+    }
+
+    // Dynamic animal spawning
+    this.animalSpawnTimer += dt;
+    if (this.animalSpawnTimer > 8) {
+        this.animalSpawnTimer = 0;
+        if (Math.random() < 0.3) {
+            this.spawnAnimals();
+        }
     }
 
     // Death check

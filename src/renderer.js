@@ -96,6 +96,15 @@ export function render(G) {
         ctx.fillRect(sx - 4, sy - 8, TILE + 8, 4);
         ctx.fillStyle = '#f1c40f';
         ctx.fillRect(sx - 4, sy - 8, (TILE + 8) * pct, 4);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '6px "Press Start 2P", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        const tRemaining = Math.max(0, Math.ceil(G.tent.timer));
+        const mins = Math.floor(tRemaining / 60);
+        const secs = tRemaining % 60;
+        ctx.fillText(`${mins}:${String(secs).padStart(2, '0')}`, sx + TILE / 2, sy - 10);
     }
 
     // Draw bonfire glow if active

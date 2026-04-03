@@ -12,14 +12,22 @@ export function startHunt(G) {
     if (G.player.inCity) { log("Can't hunt in the city!", 'danger'); return; }
     if (G.player.arrows <= 0) { log('You have no arrows! Buy more in the city.', 'danger'); return; }
 
-    // Pick random weighted animal
-    const roll = Math.random();
-    let chosen = 'rabbit';
-    let cumulative = 0;
-    for (const [key, def] of Object.entries(ANIMALS)) {
-        cumulative += def.chance;
-        if (roll < cumulative) { chosen = key; break; }
+    const W = G.canvas.width;
+    const H = G.canvas.height;
+    const visibleAnimals = G.animals.filter(a => {
+        const sx = a.x - G.camera.x;
+        const sy = a.y - G.camera.y;
+        return sx >= -20 && sx <= W + 20 && sy >= -20 && sy <= H + 20;
+    });
+
+    if (visibleAnimals.length === 0) {
+        log("No animals in sight to hunt!", 'danger');
+        return;
     }
+
+    const target = visibleAnimals[Math.floor(Math.random() * visibleAnimals.length)];
+    const chosen = target.type;
+    G.animals = G.animals.filter(a => a !== target);
 
     const def = ANIMALS[chosen];
     G.hunting.active = true;
@@ -32,7 +40,7 @@ export function startHunt(G) {
     G.hunting.missed = false;
 
     document.getElementById('hunt-instruction').textContent =
-        `A ${def.name} appeared! Wait for it to enter the green zone, then SHOOT!`;
+        `A ${def.name} appeared! Wait for it to enter the green zone, then click SHOOT or press SPACE!`;
     document.getElementById('hunt-animal').textContent = def.icon;
     document.getElementById('hunting-overlay').classList.remove('hidden');
     runHuntingLoop(G);
@@ -260,11 +268,11 @@ export function placeTent(G) {
     // Start placing
     G.player.inventory.tent--;
     G.tent.placing = true;
-    G.tent.timer = G.tent.duration; // 180s
+    G.tent.timer = G.tent.duration; // 120s
     G.tent.col = px;
     G.tent.row = py;
     
-    log(`Started building tent! It will take 3 minutes.`, 'important');
+    log(`Started building tent! It will take 2 minutes.`, 'important');
     addNotif(G, 'Building Tent...', '#3498db');
     updateInventory(G);
     updateActionButtons(G);

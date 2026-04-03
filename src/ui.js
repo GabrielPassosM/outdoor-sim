@@ -1,13 +1,15 @@
 export function log(msg, type = '') {
     const box = document.getElementById('log-messages');
+    const logBox = document.getElementById('log-box');
     const p = document.createElement('p');
     p.textContent = '▶ ' + msg;
     p.className = type;
     box.appendChild(p);
-    box.scrollTop = box.scrollHeight;
-
-    // Trim log
+    
+    // Trim log before scrolling
     while (box.children.length > 60) box.removeChild(box.firstChild);
+    
+    logBox.scrollTop = logBox.scrollHeight;
 }
 
 export function addNotif(G, text, color = '#fff') {
@@ -114,7 +116,7 @@ export function updateActionButtons(G) {
     if (p.inventory.tent > 0 && !G.tent.placing && !G.tent.placed) {
         const t = G.world.map[Math.floor(p.y/TILE)][Math.floor(p.x/TILE)];
         const isSnow = t === 0 || t === 7; // SNOW or CAMP
-        btn(`[T] ⛺ Place Tent<br><span style="font-size:0.45rem;color:#aaa">(3 real mins)</span>`, 'success', () => placeTent(G), !isSnow, isSnow ? 'Start building your base camp' : 'Must be on snow');
+        btn(`[T] ⛺ Place Tent<br><span style="font-size:0.45rem;color:#aaa">(2 real mins)</span>`, 'success', () => placeTent(G), !isSnow, isSnow ? 'Start building your base camp' : 'Must be on snow');
     }
 
     if (G.tent.placed && !G.bonfire.placed) {
