@@ -5,10 +5,10 @@ export function log(msg, type = '') {
     p.textContent = '▶ ' + msg;
     p.className = type;
     box.appendChild(p);
-    
+
     // Trim log before scrolling
     while (box.children.length > 60) box.removeChild(box.firstChild);
-    
+
     logBox.scrollTop = logBox.scrollHeight;
 }
 
@@ -60,6 +60,35 @@ export function updateHUD(G) {
         p.warmth < 25 ? 'linear-gradient(90deg, #2980b9, #1a5276)' :
             p.warmth < 50 ? 'linear-gradient(90deg, #3498db, #2980b9)' :
                 'linear-gradient(90deg, #5dade2, #3498db)';
+
+    let nearBonfire = false;
+    if (G.bonfire.placed) {
+        // TILE is imported later in this file, but ES imports are hoisted!
+        const tileSize = 40; // using standard size if TILE isn't hoisted reliably, wait... actually just using TILE is fine.
+        const dist = Math.hypot(p.x - G.bonfire.col * TILE, p.y - G.bonfire.row * TILE);
+        nearBonfire = dist < 80;
+    }
+
+    const cookBtn = document.getElementById('action-cook-btn');
+    if (cookBtn) cookBtn.disabled = !nearBonfire;
+
+    const bonfireBtn = document.getElementById('action-bonfire-btn');
+    if (bonfireBtn) bonfireBtn.disabled = !nearBonfire;
+
+    const chopBtn = document.getElementById('action-chop-btn');
+    if (chopBtn) chopBtn.disabled = p.hunger < 5;
+
+    const huntBtn = document.getElementById('action-hunt-btn');
+    if (huntBtn) {
+        let nearbyAnimal = false;
+        for (let i = 0; i < G.animals.length; i++) {
+            if (Math.hypot(p.x - G.animals[i].x, p.y - G.animals[i].y) <= 140) {
+                nearbyAnimal = true;
+                break;
+            }
+        }
+        huntBtn.disabled = p.arrows <= 0 || !nearbyAnimal;
+    }
 }
 
 export function updateInventory(G) {
@@ -100,8 +129,9 @@ export function updateActionButtons(G) {
     const panel = document.getElementById('action-buttons');
     panel.innerHTML = '';
 
-    const btn = (label, cls, fn, disabled = false, title = '') => {
+    const btn = (label, cls, fn, disabled = false, title = '', id = '') => {
         const b = document.createElement('button');
+        if (id) b.id = id;
         b.className = `pixel-btn ${cls}`;
         b.innerHTML = label;
         b.style.fontSize = '0.6rem';
@@ -114,9 +144,9 @@ export function updateActionButtons(G) {
 
     // Wilderness actions
     if (p.inventory.tent > 0 && !G.tent.placing && !G.tent.placed) {
-        const t = G.world.map[Math.floor(p.y/TILE)][Math.floor(p.x/TILE)];
+        const t = G.world.map[Math.floor(p.y / TILE)][Math.floor(p.x / TILE)];
         const isSnow = t === 0 || t === 7; // SNOW or CAMP
-        btn(`[T] ⛺ Place Tent<br><span style="font-size:0.45rem;color:#aaa">(2 real mins)</span>`, 'success', () => placeTent(G), !isSnow, isSnow ? 'Start building your base camp' : 'Must be on snow');
+        btn(`[T] ⛺ Place Tent<br><span style="font-size:0.45rem;color:#aaa">(2 mins)</span>`, 'success', () => placeTent(G), !isSnow, isSnow ? 'Start building your base camp' : 'Must be on snow');
     }
 
     if (G.tent.placed && !G.bonfire.placed) {
@@ -125,13 +155,13 @@ export function updateActionButtons(G) {
         btn(`[B] 🔥 Build Bonfire<br><span style="font-size:0.45rem;color:#aaa">(Costs 5 wood)</span>`, 'success', () => buildBonfire(G), !nearTent || p.wood < 5, 'Requires 5 wood. Must be near your tent.');
     }
 
-    btn(`[H] 🏹 Hunt`, '', () => startHunt(G), p.arrows <= 0, 'Hunt an animal (needs arrows)');
-    btn(`[X] 🪵 Chop`, '', () => chopWood(G), false, 'Chop nearby trees for wood');
-    
+    btn(`[H] 🏹 Hunt`, '', () => startHunt(G), p.arrows <= 0, 'Hunt an animal (needs arrows)', 'action-hunt-btn');
+    btn(`[X] 🪵 Chop<br><span style="font-size:0.45rem;color:#aaa">(costs 5 hunger)</span>`, '', () => chopWood(G), p.hunger < 5, 'Chop nearby trees for wood', 'action-chop-btn');
+
     if (G.bonfire.placed) {
-        btn(`[F] 🔥 Bonfire`, '', () => openBonfire(G), false, 'Manage your bonfire');
+        btn(`[F] 🔥 Bonfire`, '', () => openBonfire(G), false, 'Manage your bonfire', 'action-bonfire-btn');
     }
-    btn(`[C] 🍳 Cook`, '', () => openCook(G), false, 'Cook and eat food');
+    btn(`[C] 🍳 Cook`, '', () => openCook(G), false, 'Cook and eat food', 'action-cook-btn');
 
     // Travel to city
     const canTravel = p.hunger >= 20 && !G.travel.active && !G.sleeping.active;

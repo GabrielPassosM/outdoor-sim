@@ -12,16 +12,15 @@ export function startHunt(G) {
     if (G.player.inCity) { log("Can't hunt in the city!", 'danger'); return; }
     if (G.player.arrows <= 0) { log('You have no arrows! Buy more in the city.', 'danger'); return; }
 
-    const W = G.canvas.width;
-    const H = G.canvas.height;
+    // Only hunt animals that are nearby (within 140px)
     const visibleAnimals = G.animals.filter(a => {
-        const sx = a.x - G.camera.x;
-        const sy = a.y - G.camera.y;
-        return sx >= -20 && sx <= W + 20 && sy >= -20 && sy <= H + 20;
+        const dist = Math.hypot(G.player.x - a.x, G.player.y - a.y);
+        return dist <= 140; 
     });
 
     if (visibleAnimals.length === 0) {
-        log("No animals in sight to hunt!", 'danger');
+        log("No animals nearby to hunt!", 'danger');
+        addNotif(G, 'Get closer!', '#e74c3c');
         return;
     }
 
@@ -109,6 +108,8 @@ export function closeHunting(G) {
 // ─── FIREWOOD / BONFIRE ───────────────────────
 export function chopWood(G) {
     if (G.player.inCity) { log("Can't chop wood in the city!", 'danger'); return; }
+    if (G.player.hunger < 5) { log('You are too hungry to chop wood!', 'danger'); return; }
+    
     // Find a choppable tree nearby
     const px = Math.floor(G.player.x / TILE);
     const py = Math.floor(G.player.y / TILE);
@@ -131,9 +132,11 @@ export function chopWood(G) {
 
     const amount = G.player.steelAxe ? 4 : 2;
     G.player.wood += amount;
-    log(`Chopped wood! +${amount} logs. Total: ${G.player.wood}`, 'success');
+    G.player.hunger = Math.max(0, G.player.hunger - 5);
+    log(`Chopped wood! +${amount} logs. (-5 hunger)`, 'success');
     addNotif(G, `+${amount} 🪵`, '#f1c40f');
     updateInventory(G);
+    updateHUD(G);
 
     // Regrow in ~30s
     setTimeout(() => {
@@ -151,6 +154,13 @@ export function chopWood(G) {
 }
 
 export function openBonfire(G) {
+    if (!G.bonfire.placed) return;
+    const distToBonfire = Math.hypot(G.player.x - G.bonfire.col * TILE, G.player.y - G.bonfire.row * TILE);
+    if (distToBonfire >= 80) {
+        log('Too far from the bonfire!', 'danger');
+        addNotif(G, 'Too Far!', '#e74c3c');
+        return;
+    }
     document.getElementById('bonfire-wood-count').textContent = G.player.wood;
     document.getElementById('bonfire-status').textContent = G.bonfire.lit
         ? `🔥 Fire is burning! Staying warm. (${Math.floor(G.bonfire.timer)}s left)`
@@ -184,8 +194,46 @@ export function setupCook(G) {
 
 export function openCook(G) {
     const p = G.player;
+    if (!G.bonfire.placed) {
+        log('You need a bonfire to cook!', 'danger');
+        addNotif(G, 'Need bonfire!', '#e74c3c');
+        return;
+    }
+    const distToBonfire = Math.hypot(p.x - G.bonfire.col * TILE, p.y - G.bonfire.row * TILE);
+    if (distToBonfire >= 80) {
+        log('You need to be near the bonfire to cook!', 'danger');
+        addNotif(G, 'Too Far!', '#e74c3c');
+        return;
+    }
+    
     const options = document.getElementById('cook-options');
     options.innerHTML = '';
+
+    // Show Currently Cooking
+    if (G.cooking && G.cooking.length > 0) {
+        const cookingHeader = document.createElement('h3');
+        cookingHeader.textContent = 'Currently Cooking:';
+        cookingHeader.style.fontSize = '0.7rem';
+        cookingHeader.style.color = '#e67e22';
+        cookingHeader.style.margin = '10px 0 5px 0';
+        options.appendChild(cookingHeader);
+
+        G.cooking.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'cook-option';
+            div.style.justifyContent = 'space-between';
+            div.innerHTML = `
+              <span>${ANIMALS[item.raw].icon} Cooking ${ANIMALS[item.raw].name}...</span>
+              <span id="cook-timer-${item.id}" style="font-size:0.6rem; color:#f1c40f; margin-left: 10px;">${Math.ceil(item.timer)}s</span>
+            `;
+            options.appendChild(div);
+        });
+        
+        const hr = document.createElement('hr');
+        hr.style.borderColor = '#444';
+        hr.style.margin = '10px 0';
+        options.appendChild(hr);
+    }
 
     const raw = [
         { key: 'rabbit', cooked: 'cooked_rabbit', icon: '🐇', food: 25 },
@@ -211,8 +259,16 @@ export function openCook(G) {
                 return;
             }
             p.inventory[item.key]--;
-            p.inventory[item.cooked]++;
-            log(`Cooked ${item.icon} ${ANIMALS[item.key].name}!`, 'success');
+            
+            const cookTimes = { rabbit: 6, fox: 10, deer: 15 };
+            G.cooking.push({
+                id: Math.random().toString(36).substr(2, 9),
+                raw: item.key,
+                cooked: item.cooked,
+                timer: cookTimes[item.key] || 10
+            });
+            log(`Started cooking ${item.icon} ${ANIMALS[item.key].name}...`, 'important');
+            
             updateInventory(G);
             openCook(G); // refresh
         });
@@ -248,7 +304,7 @@ export function openCook(G) {
         options.appendChild(div);
     });
 
-    if (!anyRaw && !cooked.some(i => p.inventory[i.key] > 0)) {
+    if (!anyRaw && !cooked.some(i => p.inventory[i.key] > 0) && (!G.cooking || G.cooking.length === 0)) {
         options.innerHTML = '<p style="font-size:0.45rem;color:#778;padding:12px;">No animals to cook. Go hunt!</p>';
     }
 

@@ -67,6 +67,7 @@ export function render(G) {
     }
 
     // Draw animals
+    ctx.fillStyle = '#FFFFFF'; // Reset fill opacity to prevent translucid emojis
     G.animals.forEach(a => {
         const sx = a.x - cx;
         const sy = a.y - cy;

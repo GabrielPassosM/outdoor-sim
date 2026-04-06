@@ -40,7 +40,7 @@ export const EMOJI_TILES = {
 // Stat drain rates per second (wilderness only — city freezes all stats)
 export const DRAIN_RATES = {
     hunger_wild: 0.35,  // loses ~21/min in wild
-    warmth_wild: 0.55,  // loses ~33/min in wild
+    warmth_wild: 0.35,  // loses ~21/min in wild
     health_starve: 0.4,   // loses health when very hungry
     health_freeze: 0.5,   // loses health when very cold
     health_regen: 0.08,  // gains health slowly when warm+fed

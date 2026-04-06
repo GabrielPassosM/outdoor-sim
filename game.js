@@ -27,6 +27,7 @@ class Game {
     this.hunting = { active: false, type: null, animalX: 0, dir: 1, speed: 0, timer: 0, result: null };
     this.tent = { placed: false, placing: false, col: 0, row: 0, timer: 0, duration: 120 };
     this.bonfire = { lit: false, timer: 0, placed: false, col: 0, row: 0 };
+    this.cooking = [];
     this.day = 1;
     this.dayTimer = 0;
     this.dayLength = 120; // seconds
@@ -202,12 +203,29 @@ class Game {
   moveAnimals(dt) {
     const { cityEnd } = this.world;
     this.animals.forEach(a => {
-      a.roamTimer -= dt;
-      if (a.roamTimer <= 0) {
-        a.vx = (Math.random() * 2 - 1) * a.def.speed * 30;
-        a.vy = (Math.random() * 2 - 1) * a.def.speed * 30;
-        a.roamTimer = 1.5 + Math.random() * 3;
+      const distToPlayer = Math.hypot(this.player.x - a.x, this.player.y - a.y);
+      const fleeRange = 120; // Radius where animal starts fleeing
+      
+      if (distToPlayer < fleeRange) {
+        // Flee from player
+        const dx = a.x - this.player.x;
+        const dy = a.y - this.player.y;
+        const angle = Math.atan2(dy, dx) + (Math.random() * 0.4 - 0.2); // slight randomness
+        
+        // Flee speed is much faster than roam speed (around 1.5x to 2x player speed)
+        const fleeSpeed = a.def.speed * 70;
+        a.vx = Math.cos(angle) * fleeSpeed;
+        a.vy = Math.sin(angle) * fleeSpeed;
+        a.roamTimer = 0.5; // lock them running away so they don't stutter
+      } else {
+        a.roamTimer -= dt;
+        if (a.roamTimer <= 0) {
+          a.vx = (Math.random() * 2 - 1) * a.def.speed * 30;
+          a.vy = (Math.random() * 2 - 1) * a.def.speed * 30;
+          a.roamTimer = 1.5 + Math.random() * 3;
+        }
       }
+
       const nx = a.x + a.vx * dt;
       const ny = a.y + a.vy * dt;
       if (this.isWalkable(nx, ny) && Math.floor(nx / TILE) >= cityEnd + 2) {
@@ -216,6 +234,9 @@ class Game {
       } else {
         a.vx *= -1; a.vy *= -1;
         a.roamTimer = 0.5;
+        // Bump slightly to prevent getting stuck in a corner while fleeing
+        a.x += a.vx * dt * 0.5;
+        a.y += a.vy * dt * 0.5;
       }
     });
   }
@@ -329,6 +350,31 @@ class Game {
         log('The bonfire went out! Add more wood.', 'danger');
         addNotif(this, '🔥 Fire out!', '#e74c3c');
       }
+
+      // Cooking progress
+      for (let i = this.cooking.length - 1; i >= 0; i--) {
+        const item = this.cooking[i];
+        item.timer -= dt;
+        if (item.timer <= 0) {
+          p.inventory[item.cooked]++;
+          log(`Finished cooking ${ANIMALS[item.raw].name}!`, 'success');
+          addNotif(this, `🍖 Cooked!`, '#e67e22');
+          this.cooking.splice(i, 1);
+          
+          if (!document.getElementById('cook-overlay').classList.contains('hidden')) {
+            import('./src/wilderness.js').then(m => m.openCook(this));
+          }
+          import('./src/ui.js').then(m => m.updateInventory(this));
+        }
+      }
+    }
+
+    // Live UI update for cooking
+    if (this.cooking.length > 0 && !document.getElementById('cook-overlay').classList.contains('hidden')) {
+      this.cooking.forEach(item => {
+        const el = document.getElementById(`cook-timer-${item.id}`);
+        if (el) el.textContent = `${Math.ceil(item.timer)}s`;
+      });
     }
 
     // Clamp
