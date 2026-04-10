@@ -386,7 +386,8 @@ body {
 /* ---- OVERLAYS ---- */
 #hunting-overlay,
 #bonfire-overlay,
-#cook-overlay {
+#cook-overlay,
+#eat-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
@@ -399,13 +400,15 @@ body {
 
 #hunting-overlay.hidden,
 #bonfire-overlay.hidden,
-#cook-overlay.hidden {
+#cook-overlay.hidden,
+#eat-overlay.hidden {
   display: none;
 }
 
 #hunting-box,
 #bonfire-box,
-#cook-box {
+#cook-box,
+#eat-box {
   background: var(--dark-bg);
   border: 4px solid var(--ice-blue);
   padding: 28px 32px;
@@ -731,12 +734,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px;
+  padding: 12px;
   border: 2px solid #2a4a6a;
-  margin: 4px 0;
+  margin: 6px 0;
   background: #0a1525;
-  gap: 8px;
-  font-size: 0.4rem;
+  gap: 12px;
+  font-size: 0.6rem;
 }
 
 .shop-item-info {
@@ -747,7 +750,7 @@ body {
 }
 
 .shop-item-icon {
-  font-size: 1.4rem;
+  font-size: 2rem;
 }
 
 .shop-item-name {
@@ -756,8 +759,8 @@ body {
 
 .shop-item-desc {
   color: #778;
-  margin-top: 2px;
-  font-size: 0.35rem;
+  margin-top: 4px;
+  font-size: 0.45rem;
 }
 
 .shop-item-price {
@@ -807,7 +810,7 @@ body {
 #hunt-zone {
   position: absolute;
   top: 0;
-  width: 80px;
+  width: 120px;
   height: 100%;
   background: rgba(46, 204, 113, 0.35);
   border: 2px solid #2ecc71;

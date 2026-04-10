@@ -1,6 +1,7 @@
 import { TILE, MAP_ROWS, MAP_COLS, TILE_TYPE } from './constants.js';
 import { ANIMALS } from './data.js';
 import { updateHUD, updateInventory, log, addNotif, updateActionButtons } from './ui.js';
+import { DEVELOPMENT_MODE } from './settings.js';
 
 // ─── HUNTING MINI-GAME ───────────────────────
 export function setupHuntingGame(G) {
@@ -15,7 +16,7 @@ export function startHunt(G) {
     // Only hunt animals that are nearby (within 140px)
     const visibleAnimals = G.animals.filter(a => {
         const dist = Math.hypot(G.player.x - a.x, G.player.y - a.y);
-        return dist <= 140; 
+        return dist <= 140;
     });
 
     if (visibleAnimals.length === 0) {
@@ -51,6 +52,15 @@ export function runHuntingLoop(G) {
     const animalEl = document.getElementById('hunt-animal');
     const trackW = track.clientWidth - 30;
 
+    const zoneLeft = (trackW - 120) / 2;
+    const zoneRight = zoneLeft + 120;
+    const inHitZone = G.hunting.animalX >= zoneLeft && G.hunting.animalX <= zoneRight;
+
+    // Randomly flick direction (approx 5% chance per frame), but only outside the hit zone
+    if (!inHitZone && Math.random() < 0.05) {
+        G.hunting.dir *= -1;
+    }
+
     G.hunting.animalX += G.hunting.dir * G.hunting.speed * 0.016;
     if (G.hunting.animalX > trackW) { G.hunting.animalX = trackW; G.hunting.dir = -1; }
     if (G.hunting.animalX < 0) { G.hunting.animalX = 0; G.hunting.dir = 1; }
@@ -60,8 +70,8 @@ export function runHuntingLoop(G) {
     G.hunting.timer += 0.016;
     if (G.hunting.timer > 3) G.hunting.speed = Math.min(G.hunting.speed * 1.002, 400);
 
-    // Timeout after 12s = miss
-    if (G.hunting.timer > 12) {
+    // Timeout after 20s = miss
+    if (G.hunting.timer > 20) {
         G.hunting.active = false;
         G.player.arrows--;
         log('The animal got away!', 'danger');
@@ -76,8 +86,8 @@ export function shootAnimal(G) {
     if (!G.hunting.active) return;
     const track = document.getElementById('hunt-track');
     const trackW = track.clientWidth - 30;
-    const zoneLeft = (trackW - 80) / 2;
-    const zoneRight = zoneLeft + 80;
+    const zoneLeft = (trackW - 120) / 2;
+    const zoneRight = zoneLeft + 120;
     const ax = G.hunting.animalX;
 
     G.hunting.active = false;
@@ -109,7 +119,7 @@ export function closeHunting(G) {
 export function chopWood(G) {
     if (G.player.inCity) { log("Can't chop wood in the city!", 'danger'); return; }
     if (G.player.hunger < 5) { log('You are too hungry to chop wood!', 'danger'); return; }
-    
+
     // Find a choppable tree nearby
     const px = Math.floor(G.player.x / TILE);
     const py = Math.floor(G.player.y / TILE);
@@ -150,7 +160,7 @@ export function chopWood(G) {
                 G.world.map[rr][rc] = TILE_TYPE.CHOP;
             }
         }
-    }, 30000);
+    }, DEVELOPMENT_MODE ? 2000 : 30000);
 }
 
 export function openBonfire(G) {
@@ -205,7 +215,7 @@ export function openCook(G) {
         addNotif(G, 'Too Far!', '#e74c3c');
         return;
     }
-    
+
     const options = document.getElementById('cook-options');
     options.innerHTML = '';
 
@@ -222,13 +232,30 @@ export function openCook(G) {
             const div = document.createElement('div');
             div.className = 'cook-option';
             div.style.justifyContent = 'space-between';
-            div.innerHTML = `
-              <span>${ANIMALS[item.raw].icon} Cooking ${ANIMALS[item.raw].name}...</span>
-              <span id="cook-timer-${item.id}" style="font-size:0.6rem; color:#f1c40f; margin-left: 10px;">${Math.ceil(item.timer)}s</span>
-            `;
+            if (item.timer <= 0) {
+                div.innerHTML = `
+                  <span>${ANIMALS[item.raw].icon} Cooked ${ANIMALS[item.raw].name}</span>
+                  <button class="pixel-btn success" style="font-size:0.4rem;padding:6px 10px;border-color:#2ecc71;">
+                    Collect
+                  </button>
+                `;
+                div.querySelector('button').addEventListener('click', () => {
+                    p.inventory[item.cooked]++;
+                    log(`Collected cooked ${ANIMALS[item.raw].name}!`, 'success');
+                    addNotif(G, `+1 🍖`, '#2ecc71');
+                    G.cooking = G.cooking.filter(c => c.id !== item.id);
+                    updateInventory(G);
+                    openCook(G);
+                });
+            } else {
+                div.innerHTML = `
+                  <span>${ANIMALS[item.raw].icon} Cooking ${ANIMALS[item.raw].name}...</span>
+                  <span id="cook-timer-${item.id}" style="font-size:0.6rem; color:#f1c40f; margin-left: 10px;">${Math.ceil(item.timer)}s</span>
+                `;
+            }
             options.appendChild(div);
         });
-        
+
         const hr = document.createElement('hr');
         hr.style.borderColor = '#444';
         hr.style.margin = '10px 0';
@@ -259,53 +286,24 @@ export function openCook(G) {
                 return;
             }
             p.inventory[item.key]--;
-            
+
             const cookTimes = { rabbit: 6, fox: 10, deer: 15 };
             G.cooking.push({
                 id: Math.random().toString(36).substr(2, 9),
                 raw: item.key,
                 cooked: item.cooked,
-                timer: cookTimes[item.key] || 10
+                timer: DEVELOPMENT_MODE ? 2 : (cookTimes[item.key] || 10)
             });
             log(`Started cooking ${item.icon} ${ANIMALS[item.key].name}...`, 'important');
-            
+
             updateInventory(G);
             openCook(G); // refresh
         });
         options.appendChild(div);
     });
 
-    // Show cooked items to eat
-    const cooked = [
-        { key: 'cooked_rabbit', icon: '🍖', food: 25 },
-        { key: 'cooked_deer', icon: '🍖', food: 60 },
-        { key: 'cooked_fox', icon: '🍖', food: 35 },
-    ];
-    cooked.forEach(item => {
-        const qty = p.inventory[item.key];
-        if (qty <= 0) return;
-        const label = item.key.replace('cooked_', '').replace(/^\w/, c => c.toUpperCase());
-        const div = document.createElement('div');
-        div.className = 'cook-option';
-        div.innerHTML = `
-      <span>${item.icon} Cooked ${label} (×${qty})</span>
-      <button class="pixel-btn" style="font-size:0.4rem;padding:6px 10px;border-color:#e67e22;">
-        😋 Eat (+${item.food} hunger)
-      </button>`;
-        div.querySelector('button').addEventListener('click', () => {
-            p.inventory[item.key]--;
-            p.hunger = Math.min(100, p.hunger + item.food);
-            log(`Ate cooked ${label}! +${item.food} hunger.`, 'success');
-            addNotif(G, `+${item.food} 🍖`, '#e67e22');
-            updateHUD(G);
-            updateInventory(G);
-            openCook(G);
-        });
-        options.appendChild(div);
-    });
-
-    if (!anyRaw && !cooked.some(i => p.inventory[i.key] > 0) && (!G.cooking || G.cooking.length === 0)) {
-        options.innerHTML = '<p style="font-size:0.45rem;color:#778;padding:12px;">No animals to cook. Go hunt!</p>';
+    if (!anyRaw && (!G.cooking || G.cooking.length === 0)) {
+        options.innerHTML = '<p style="font-size:0.45rem;color:#778;padding:12px;">No raw meat to cook. Go hunt!</p>';
     }
 
     document.getElementById('cook-overlay').classList.remove('hidden');
@@ -320,15 +318,15 @@ export function placeTent(G) {
         log("Must be placed on flat snow!", 'danger');
         return;
     }
-    
+
     // Start placing
     G.player.inventory.tent--;
     G.tent.placing = true;
     G.tent.timer = G.tent.duration; // 120s
     G.tent.col = px;
     G.tent.row = py;
-    
-    log(`Started building tent! It will take 2 minutes.`, 'important');
+
+    log(`Started building tent! It will take ${DEVELOPMENT_MODE ? '2 seconds' : '2 minutes'}.`, 'important');
     addNotif(G, 'Building Tent...', '#3498db');
     updateInventory(G);
     updateActionButtons(G);
@@ -338,7 +336,7 @@ export function buildBonfire(G) {
     if (!G.tent.placed || G.bonfire.placed || G.player.wood < 5) return;
     const px = Math.floor(G.player.x / TILE);
     const py = Math.floor(G.player.y / TILE);
-    
+
     // Nearest to tent check
     const distToTent = Math.hypot(G.player.x - G.tent.col * TILE, G.player.y - G.tent.row * TILE);
     if (distToTent >= 80) {

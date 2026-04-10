@@ -1,5 +1,6 @@
 import { ANIMALS, SHOP_ITEMS } from './data.js';
 import { updateHUD, updateActionButtons, updateInventory, log, addNotif } from './ui.js';
+import { DEVELOPMENT_MODE } from './settings.js';
 
 export function setupCity(G) {
     // Tab buttons
@@ -52,7 +53,7 @@ export function travelToCity(G) {
     log('🛷 Setting off for the city. Journey takes 1 minute...', 'info');
 
     // Start travel
-    G.travel = { active: true, direction: 'city', elapsed: 0, duration: 60 };
+    G.travel = { active: true, direction: 'city', elapsed: 0, duration: DEVELOPMENT_MODE ? 2 : 60 };
     document.getElementById('travel-title').textContent = 'TRAVELLING TO CITY';
     document.getElementById('travel-subtitle').textContent = 'The path through the snow is long...';
     document.getElementById('travel-icon').textContent = '🛷';
@@ -93,7 +94,7 @@ export function startSleep(G) {
     document.getElementById('city-money').textContent = G.player.money;
     document.getElementById('city-overlay').classList.add('hidden');
 
-    G.sleeping = { active: true, elapsed: 0, duration: 300 }; // 5 min
+    G.sleeping = { active: true, elapsed: 0, duration: DEVELOPMENT_MODE ? 2 : 300 }; // 5 min
     document.getElementById('sleep-progress-bar').style.width = '0%';
     document.getElementById('sleep-timer-text').textContent = '5:00 remaining';
     document.getElementById('sleep-overlay').classList.remove('hidden');
@@ -134,8 +135,8 @@ export function renderShop(G) {
             <div class="shop-item-desc">Sell for ${item.price} coins each</div>
           </div>
         </div>
-        <button class="pixel-btn success" style="font-size:0.35rem;padding:6px 10px">
-          SELL ALL<br>💰${item.price * qty}
+        <button class="pixel-btn success" style="font-size:0.5rem;padding:10px 14px">
+          SELL ALL<br><span style="font-size:0.4rem; color:var(--gold);">💰${item.price * qty}</span>
         </button>`;
             div.querySelector('button').addEventListener('click', () => {
                 const earned = item.price * G.player.inventory[item.key];
@@ -165,8 +166,8 @@ export function renderShop(G) {
             <div class="shop-item-desc">${item.description}</div>
           </div>
         </div>
-        <button class="pixel-btn ${canAfford ? 'success' : ''}" style="font-size:0.35rem;padding:6px 10px" ${canAfford ? '' : 'disabled'}>
-          BUY<br>💰${item.price}
+        <button class="pixel-btn ${canAfford ? 'success' : ''}" style="font-size:0.5rem;padding:10px 14px" ${canAfford ? '' : 'disabled'}>
+          BUY<br><span style="font-size:0.4rem; color:var(--gold);">💰${item.price}</span>
         </button>`;
             div.querySelector('button').addEventListener('click', () => {
                 if (G.player.money < item.price) return;

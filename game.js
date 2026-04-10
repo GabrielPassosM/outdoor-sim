@@ -8,6 +8,7 @@ import { setupHuntingGame, setupBonfire, setupCook, startHunt, chopWood, openBon
 import { setupSnowflakes, log, addNotif, updateActionButtons, updateHUD, updateInventory } from './src/ui.js';
 import { render } from './src/renderer.js';
 import { ANIMALS } from './src/data.js';
+import { DEVELOPMENT_MODE } from './src/settings.js';
 
 /* =============================================
    OUTDOOR SIM - CORE GAME ENGINE
@@ -25,7 +26,7 @@ class Game {
     this.animals = [];
     this.animalSpawnTimer = 0;
     this.hunting = { active: false, type: null, animalX: 0, dir: 1, speed: 0, timer: 0, result: null };
-    this.tent = { placed: false, placing: false, col: 0, row: 0, timer: 0, duration: 120 };
+    this.tent = { placed: false, placing: false, col: 0, row: 0, timer: 0, duration: DEVELOPMENT_MODE ? 2 : 120 };
     this.bonfire = { lit: false, timer: 0, placed: false, col: 0, row: 0 };
     this.cooking = [];
     this.day = 1;
@@ -57,7 +58,7 @@ class Game {
       y: campRow * TILE + TILE / 2,
       w: 12, h: 14,
       health: 100, hunger: 100, warmth: 100,
-      money: 20,
+      money: DEVELOPMENT_MODE ? 1000 : 20,
       inventory: { tent: 1, rabbit: 0, deer: 0, fox: 0, cooked_rabbit: 0, cooked_deer: 0, cooked_fox: 0 },
       wood: 5,
       arrows: 10,
@@ -113,7 +114,8 @@ class Game {
       !document.getElementById('travel-overlay').classList.contains('hidden') ||
       !document.getElementById('sleep-overlay').classList.contains('hidden') ||
       !document.getElementById('bonfire-overlay').classList.contains('hidden') ||
-      !document.getElementById('cook-overlay').classList.contains('hidden');
+      !document.getElementById('cook-overlay').classList.contains('hidden') ||
+      !document.getElementById('eat-overlay').classList.contains('hidden');
   }
 
   // ─── ANIMALS ─────────────────────────────────
@@ -203,27 +205,11 @@ class Game {
   moveAnimals(dt) {
     const { cityEnd } = this.world;
     this.animals.forEach(a => {
-      const distToPlayer = Math.hypot(this.player.x - a.x, this.player.y - a.y);
-      const fleeRange = 120; // Radius where animal starts fleeing
-      
-      if (distToPlayer < fleeRange) {
-        // Flee from player
-        const dx = a.x - this.player.x;
-        const dy = a.y - this.player.y;
-        const angle = Math.atan2(dy, dx) + (Math.random() * 0.4 - 0.2); // slight randomness
-        
-        // Flee speed is much faster than roam speed (around 1.5x to 2x player speed)
-        const fleeSpeed = a.def.speed * 70;
-        a.vx = Math.cos(angle) * fleeSpeed;
-        a.vy = Math.sin(angle) * fleeSpeed;
-        a.roamTimer = 0.5; // lock them running away so they don't stutter
-      } else {
-        a.roamTimer -= dt;
-        if (a.roamTimer <= 0) {
-          a.vx = (Math.random() * 2 - 1) * a.def.speed * 30;
-          a.vy = (Math.random() * 2 - 1) * a.def.speed * 30;
-          a.roamTimer = 1.5 + Math.random() * 3;
-        }
+      a.roamTimer -= dt;
+      if (a.roamTimer <= 0) {
+        a.vx = (Math.random() * 2 - 1) * a.def.speed * 30;
+        a.vy = (Math.random() * 2 - 1) * a.def.speed * 30;
+        a.roamTimer = 1.5 + Math.random() * 3;
       }
 
       const nx = a.x + a.vx * dt;
@@ -354,17 +340,17 @@ class Game {
       // Cooking progress
       for (let i = this.cooking.length - 1; i >= 0; i--) {
         const item = this.cooking[i];
-        item.timer -= dt;
-        if (item.timer <= 0) {
-          p.inventory[item.cooked]++;
-          log(`Finished cooking ${ANIMALS[item.raw].name}!`, 'success');
-          addNotif(this, `🍖 Cooked!`, '#e67e22');
-          this.cooking.splice(i, 1);
-          
-          if (!document.getElementById('cook-overlay').classList.contains('hidden')) {
-            import('./src/wilderness.js').then(m => m.openCook(this));
+        if (item.timer > 0) {
+          item.timer -= dt;
+          if (item.timer <= 0) {
+            item.timer = 0;
+            log(`Finished cooking ${ANIMALS[item.raw].name}! Collect it from the fire.`, 'success');
+            addNotif(this, `🍖 Ready!`, '#e67e22');
+            
+            if (!document.getElementById('cook-overlay').classList.contains('hidden')) {
+              import('./src/wilderness.js').then(m => m.openCook(this));
+            }
           }
-          import('./src/ui.js').then(m => m.updateInventory(this));
         }
       }
     }

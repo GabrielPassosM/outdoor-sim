@@ -105,7 +105,9 @@ export function updateInventory(G) {
         { icon: '🐇', name: 'Rabbit', qty: p.inventory.rabbit },
         { icon: '🦌', name: 'Deer', qty: p.inventory.deer },
         { icon: '🦊', name: 'Fox', qty: p.inventory.fox },
-        { icon: '🍖', name: 'Cooked', qty: p.inventory.cooked_rabbit + p.inventory.cooked_deer + p.inventory.cooked_fox },
+        { icon: '🍖', name: 'C. Rabbit', key: 'cooked_rabbit', food: 25, qty: p.inventory.cooked_rabbit },
+        { icon: '🍖', name: 'C. Deer', key: 'cooked_deer', food: 60, qty: p.inventory.cooked_deer },
+        { icon: '🍖', name: 'C. Fox', key: 'cooked_fox', food: 35, qty: p.inventory.cooked_fox },
     ];
     if (p.hasCoat) items.push({ icon: '🧥', name: 'Warm Coat', qty: null });
 
@@ -116,6 +118,42 @@ export function updateInventory(G) {
         div.innerHTML = `<div class="item-icon">${item.icon}</div>
       <div class="item-name">${item.name}</div>
       ${item.qty !== null ? `<div class="item-qty">${item.qty}</div>` : ''}`;
+        
+        if (item.food) {
+            div.style.cursor = 'pointer';
+            div.title = `Eat (+${item.food} hunger)`;
+            div.addEventListener('click', () => {
+                const overlay = document.getElementById('eat-overlay');
+                document.getElementById('eat-desc').textContent = `Eat ${item.name.replace('C.', 'Cooked')} to restore ${item.food} hunger?`;
+                
+                // Refresh buttons to clear old listeners
+                const confirmBtn = document.getElementById('eat-confirm-btn');
+                const newConfirm = confirmBtn.cloneNode(true);
+                confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
+                
+                const cancelBtn = document.getElementById('eat-cancel-btn');
+                const newCancel = cancelBtn.cloneNode(true);
+                cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+                
+                newConfirm.addEventListener('click', () => {
+                    overlay.classList.add('hidden');
+                    if (p.inventory[item.key] > 0) {
+                        p.inventory[item.key]--;
+                        p.hunger = Math.min(100, p.hunger + item.food);
+                        log(`Ate ${item.name.replace('C.', 'Cooked')}! +${item.food} hunger.`, 'success');
+                        addNotif(G, `+${item.food} 🍖`, '#e67e22');
+                        updateHUD(G);
+                        updateInventory(G);
+                    }
+                });
+                
+                newCancel.addEventListener('click', () => {
+                    overlay.classList.add('hidden');
+                });
+                
+                overlay.classList.remove('hidden');
+            });
+        }
         grid.appendChild(div);
     });
 }
