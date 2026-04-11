@@ -136,7 +136,7 @@ export function renderShop(G) {
           </div>
         </div>
         <button class="pixel-btn success" style="font-size:0.5rem;padding:10px 14px">
-          SELL ALL<br><span style="font-size:0.4rem; color:var(--gold);">💰${item.price * qty}</span>
+          SELL ALL<br><span style="font-size:0.45rem; color:var(--gold);">💰${item.price * qty}</span>
         </button>`;
             div.querySelector('button').addEventListener('click', () => {
                 const earned = item.price * G.player.inventory[item.key];
@@ -151,7 +151,7 @@ export function renderShop(G) {
             content.appendChild(div);
         });
         if (!hasAnything)
-            content.innerHTML = '<p style="font-size:0.42rem;color:#778;padding:12px;text-align:center;">Nothing to sell. Hunt some animals!</p>';
+            content.innerHTML = '<p style="font-size:1rem;color:#778;padding:12px;text-align:center;">Nothing to sell. Hunt some animals!</p>';
     } else {
         // Buy tab
         Object.entries(SHOP_ITEMS).forEach(([key, item]) => {
@@ -167,7 +167,7 @@ export function renderShop(G) {
           </div>
         </div>
         <button class="pixel-btn ${canAfford ? 'success' : ''}" style="font-size:0.5rem;padding:10px 14px" ${canAfford ? '' : 'disabled'}>
-          BUY<br><span style="font-size:0.4rem; color:var(--gold);">💰${item.price}</span>
+          BUY<br><span style="font-size:0.45rem; color:var(--gold);">💰${item.price}</span>
         </button>`;
             div.querySelector('button').addEventListener('click', () => {
                 if (G.player.money < item.price) return;

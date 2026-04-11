@@ -592,14 +592,14 @@ body {
 }
 
 #city-title {
-  font-size: 2rem;
+  font-size: 3rem;
   color: var(--snow-white);
   text-shadow: 0 0 20px var(--ice-blue), 4px 4px 0 #000;
   margin-bottom: 6px;
 }
 
 #city-tagline {
-  font-size: 0.45rem;
+  font-size: 0.8rem;
   color: var(--ice-blue);
   letter-spacing: 4px;
   margin-bottom: 12px;
@@ -607,7 +607,7 @@ body {
 
 #city-money-block {
   display: inline-block;
-  font-size: 0.65rem;
+  font-size: 1rem;
   color: var(--gold);
   border: 2px solid var(--gold);
   padding: 6px 16px;
@@ -653,19 +653,19 @@ body {
 }
 
 .section-icon {
-  font-size: 2rem;
+  font-size: 3rem;
   line-height: 1;
   flex-shrink: 0;
 }
 
 .section-title {
-  font-size: 0.75rem;
+  font-size: 1.2rem;
   color: var(--gold);
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .section-desc {
-  font-size: 0.38rem;
+  font-size: 0.8rem;
   color: #778;
   line-height: 1.8;
 }
@@ -682,8 +682,8 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 5px 0;
-  font-size: 0.42rem;
+  padding: 8px 0;
+  font-size: 0.8rem;
   border-bottom: 1px solid #1a3a5a;
   color: #aac;
 }
@@ -710,7 +710,7 @@ body {
 
 .tab-btn {
   font-family: 'Press Start 2P', monospace;
-  font-size: 0.55rem;
+  font-size: 0.8rem;
   padding: 8px 16px;
   background: #0d1b2a;
   color: #aaa;
@@ -739,7 +739,7 @@ body {
   margin: 6px 0;
   background: #0a1525;
   gap: 12px;
-  font-size: 0.6rem;
+  font-size: 0.8rem;
 }
 
 .shop-item-info {
@@ -755,12 +755,14 @@ body {
 
 .shop-item-name {
   color: var(--snow-white);
+  font-size: 0.7rem;
 }
 
 .shop-item-desc {
   color: #778;
-  margin-top: 4px;
-  font-size: 0.45rem;
+  margin-top: 6px;
+  font-size: 0.58rem;
+  line-height: 1.4;
 }
 
 .shop-item-price {
@@ -778,8 +780,8 @@ body {
 }
 
 #leave-city-btn {
-  font-size: 0.6rem;
-  padding: 14px 28px;
+  font-size: 0.9rem;
+  padding: 16px 32px;
   border-color: var(--pine-green);
   color: #7cca7c;
   background: rgba(20, 60, 20, 0.6);
