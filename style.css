@@ -161,6 +161,49 @@ body {
   box-shadow: 4px 4px 0 #000;
 }
 
+.pixel-btn.login-btn {
+  background: #db4437;
+  border-color: #fff;
+}
+
+.pixel-btn.login-btn:hover {
+  background: #c53929;
+}
+
+.pixel-btn.login-btn .icon {
+  font-weight: bold;
+  margin-right: 8px;
+  display: inline-block;
+}
+
+.pixel-btn.secondary-btn {
+  background: #6c757d;
+  border-color: #ced4da;
+}
+
+.pixel-btn.secondary-btn:hover {
+  background: #5a6268;
+}
+
+.pixel-btn.small-btn {
+  padding: 8px 16px;
+  font-size: 0.6rem;
+}
+
+.welcome-msg {
+  font-size: 0.8rem;
+  color: var(--ice-blue);
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 0 #000;
+}
+
+#auth-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
 #start-btn {
   font-size: 0.8rem;
   padding: 16px 32px;

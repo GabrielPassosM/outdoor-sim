@@ -9,6 +9,7 @@ import { setupSnowflakes, log, addNotif, updateActionButtons, updateHUD, updateI
 import { render } from './src/renderer.js';
 import { ANIMALS } from './src/data.js';
 import { DEVELOPMENT_MODE } from './src/settings.js';
+import { initAuth, loginWithGoogle, logout } from './src/auth.js';
 
 /* =============================================
    OUTDOOR SIM - CORE GAME ENGINE
@@ -457,6 +458,31 @@ class Game {
 // ─── INIT ────────────────────────────────────
 let game = null;
 
+const loginContainer = document.getElementById('login-container');
+const userProfile = document.getElementById('user-profile');
+const welcomeText = document.getElementById('welcome-text');
+
+document.getElementById('google-login-btn').addEventListener('click', () => {
+  loginWithGoogle().catch(err => {
+    console.error("Login failed:", err);
+  });
+});
+
+document.getElementById('guest-login-btn').addEventListener('click', () => {
+  // Play as guest logic
+  loginContainer.classList.add('hidden');
+  userProfile.classList.remove('hidden');
+  welcomeText.textContent = "Welcome, Guest!";
+  document.getElementById('logout-btn').classList.add('hidden'); // Guests can't logout
+});
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+  logout().then(() => {
+    loginContainer.classList.remove('hidden');
+    userProfile.classList.add('hidden');
+  });
+});
+
 document.getElementById('start-btn').addEventListener('click', () => {
   document.getElementById('title-screen').classList.add('hidden');
   document.getElementById('game-screen').classList.remove('hidden');
@@ -469,4 +495,19 @@ document.getElementById('restart-btn').addEventListener('click', () => {
   document.getElementById('game-screen').classList.remove('hidden');
   game = new Game();
   game.start();
+});
+
+// Initialize authentication state listener
+initAuth((user) => {
+  if (user) {
+    // User is signed in
+    loginContainer.classList.add('hidden');
+    userProfile.classList.remove('hidden');
+    document.getElementById('logout-btn').classList.remove('hidden');
+    welcomeText.textContent = `Welcome, ${user.displayName || "Explorer"}!`;
+  } else {
+    // User is signed out or auth is not initialized/failed
+    loginContainer.classList.remove('hidden');
+    userProfile.classList.add('hidden');
+  }
 });

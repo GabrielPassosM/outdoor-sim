@@ -21,7 +21,21 @@
         <p>Hunt. Chop. Survive.</p>
         <p>The cold does not forgive.</p>
       </div>
-      <button id="start-btn" class="pixel-btn">▶ START GAME</button>
+      
+      <!-- AUTHENTICATION SECTION -->
+      <div id="auth-section">
+        <div id="login-container">
+          <button id="google-login-btn" class="pixel-btn login-btn">
+            <span class="icon">G</span> LOGIN WITH GOOGLE
+          </button>
+          <button id="guest-login-btn" class="pixel-btn secondary-btn">PLAY AS GUEST</button>
+        </div>
+        <div id="user-profile" class="hidden">
+          <p id="welcome-text" class="welcome-msg">Welcome, Explorer!</p>
+          <button id="start-btn" class="pixel-btn">▶ START GAME</button>
+          <button id="logout-btn" class="pixel-btn danger small-btn" style="margin-top:10px;">LOGOUT</button>
+        </div>
+      </div>
     </div>
   </div>
 
