@@ -9,28 +9,41 @@ import { setupSnowflakes, log, addNotif, updateActionButtons, updateHUD, updateI
 import { render } from './src/renderer.js';
 import { ANIMALS } from './src/data.js';
 import { DEVELOPMENT_MODE } from './src/settings.js';
-import { initAuth, loginWithGoogle, logout } from './src/auth.js';
+import { initAuth, loginWithGoogle, logout, getCurrentUser } from './src/auth.js';
+import { loadUserSaves, saveGameSlot } from './src/storage.js';
 
 /* =============================================
    OUTDOOR SIM - CORE GAME ENGINE
    ============================================= */
 
 class Game {
-  constructor() {
+  constructor(saveData = null) {
     this.canvas = document.getElementById('game-canvas');
     this.ctx = this.canvas.getContext('2d');
     this.resize();
     window.addEventListener('resize', () => this.resize());
 
-    this.world = generateWorld();
-    this.player = this.createPlayer();
+    if (saveData) {
+      this.world = saveData.world;
+      if (typeof this.world.map === 'string') {
+          this.world.map = JSON.parse(this.world.map);
+      }
+      this.player = saveData.player;
+      this.day = saveData.day;
+      this.tent = saveData.tent;
+      this.bonfire = saveData.bonfire;
+    } else {
+      this.world = generateWorld();
+      this.player = this.createPlayer();
+      this.tent = { placed: false, placing: false, col: 0, row: 0, timer: 0, duration: DEVELOPMENT_MODE ? 2 : 120 };
+      this.bonfire = { lit: false, timer: 0, placed: false, col: 0, row: 0 };
+      this.day = 1;
+    }
+
     this.animals = [];
     this.animalSpawnTimer = 0;
     this.hunting = { active: false, type: null, animalX: 0, dir: 1, speed: 0, timer: 0, result: null };
-    this.tent = { placed: false, placing: false, col: 0, row: 0, timer: 0, duration: DEVELOPMENT_MODE ? 2 : 120 };
-    this.bonfire = { lit: false, timer: 0, placed: false, col: 0, row: 0 };
     this.cooking = [];
-    this.day = 1;
     this.dayTimer = 0;
     this.dayLength = 120; // seconds
     this.running = false;
@@ -67,6 +80,19 @@ class Game {
       steelAxe: false,
       speed: 90,
       inCity: false,
+    };
+  }
+
+  serialize() {
+    return {
+      player: this.player,
+      world: {
+          ...this.world,
+          map: JSON.stringify(this.world.map)
+      },
+      day: this.day,
+      tent: this.tent,
+      bonfire: this.bonfire
     };
   }
 
@@ -116,7 +142,8 @@ class Game {
       !document.getElementById('sleep-overlay').classList.contains('hidden') ||
       !document.getElementById('bonfire-overlay').classList.contains('hidden') ||
       !document.getElementById('cook-overlay').classList.contains('hidden') ||
-      !document.getElementById('eat-overlay').classList.contains('hidden');
+      !document.getElementById('eat-overlay').classList.contains('hidden') ||
+      !document.getElementById('pause-overlay').classList.contains('hidden');
   }
 
   // ─── ANIMALS ─────────────────────────────────
@@ -408,6 +435,25 @@ class Game {
     let reason = 'You succumbed to the wilderness.';
     if (this.player.hunger <= 5) reason = 'You starved to death.';
     if (this.player.warmth <= 5) reason = 'You froze to death.';
+
+    // Process Death Penalty
+    this.player.health = 100;
+    this.player.hunger = 100;
+    this.player.warmth = 100;
+    this.player.wood = 5;
+    this.player.arrows = 10;
+    this.player.hasCoat = false;
+    this.player.steelAxe = false;
+    this.player.inventory = { tent: this.tent.placed ? 0 : 1, rabbit: 0, deer: 0, fox: 0, cooked_rabbit: 0, cooked_deer: 0, cooked_fox: 0 };
+    this.player.x = this.world.campCol * TILE + TILE / 2;
+    this.player.y = this.world.campRow * TILE + TILE / 2;
+    this.player.inCity = false;
+    
+    // Save penalized state to current slot
+    if (window.currentSaveSlot) {
+        saveGameSlot(window.currentUser, window.currentSaveSlot, this.serialize());
+    }
+
     document.getElementById('death-reason').textContent = reason;
     document.getElementById('death-days').textContent = this.day;
     document.getElementById('death-screen').classList.remove('hidden');
@@ -432,9 +478,13 @@ class Game {
     const dt = Math.min((timestamp - this.lastTime) / 1000, 0.1); // cap dt at 100ms
     this.lastTime = timestamp;
 
-    this.movePlayer(dt);
-    this.moveAnimals(dt);
-    this.updateStats(dt);
+    if (!document.getElementById('pause-overlay').classList.contains('hidden')) {
+      // If paused, skip updating logic but keep rendering
+    } else {
+      this.movePlayer(dt);
+      this.moveAnimals(dt);
+      this.updateStats(dt);
+    }
     this.updateCamera();
 
     updateHUD(this);
@@ -457,6 +507,8 @@ class Game {
 
 // ─── INIT ────────────────────────────────────
 let game = null;
+window.currentUser = null;
+window.currentSaveSlot = null;
 
 const loginContainer = document.getElementById('login-container');
 const userProfile = document.getElementById('user-profile');
@@ -470,6 +522,7 @@ document.getElementById('google-login-btn').addEventListener('click', () => {
 
 document.getElementById('guest-login-btn').addEventListener('click', () => {
   // Play as guest logic
+  window.currentUser = null;
   loginContainer.classList.add('hidden');
   userProfile.classList.remove('hidden');
   welcomeText.textContent = "Welcome, Guest!";
@@ -478,27 +531,123 @@ document.getElementById('guest-login-btn').addEventListener('click', () => {
 
 document.getElementById('logout-btn').addEventListener('click', () => {
   logout().then(() => {
+    window.currentUser = null;
     loginContainer.classList.remove('hidden');
     userProfile.classList.add('hidden');
   });
 });
 
 document.getElementById('start-btn').addEventListener('click', () => {
-  document.getElementById('title-screen').classList.add('hidden');
-  document.getElementById('game-screen').classList.remove('hidden');
-  game = new Game();
-  game.start();
+  document.getElementById('user-profile').classList.add('hidden');
+  document.getElementById('login-container').classList.add('hidden');
+  document.getElementById('saves-section').classList.remove('hidden');
+  renderSavesMenu();
 });
+
+document.getElementById('back-to-profile-btn').addEventListener('click', () => {
+  document.getElementById('saves-section').classList.add('hidden');
+  if (window.currentUser || userProfile.classList.contains('hidden') === false) {
+      userProfile.classList.remove('hidden');
+  } else {
+      loginContainer.classList.remove('hidden');
+  }
+});
+
+async function renderSavesMenu() {
+  const savesList = document.getElementById('saves-list');
+  const loadingText = document.getElementById('saves-loading-text');
+  savesList.innerHTML = '';
+  loadingText.classList.remove('hidden');
+
+  const saves = await loadUserSaves(window.currentUser);
+  loadingText.classList.add('hidden');
+
+  const slots = window.currentUser ? ['slot_1', 'slot_2', 'slot_3'] : ['slot_1'];
+
+  slots.forEach((slot, idx) => {
+    const data = saves[slot];
+    const slotDiv = document.createElement('div');
+    slotDiv.style.border = '2px solid #fff';
+    slotDiv.style.padding = '10px';
+    slotDiv.style.width = '250px';
+    slotDiv.style.textAlign = 'center';
+    
+    if (data) {
+        slotDiv.innerHTML = `
+            <h3 style="margin-bottom:5px;">Slot ${idx + 1}</h3>
+            <p style="font-size:0.7rem; margin-bottom:10px;">Day ${data.day} | ${data.player.money} coins</p>
+            <button class="pixel-btn small-btn load-btn" data-slot="${slot}">LOAD GAME</button>
+        `;
+    } else {
+        slotDiv.innerHTML = `
+            <h3 style="margin-bottom:5px; color:#aaa;">Slot ${idx + 1}</h3>
+            <p style="font-size:0.7rem; color:#aaa; margin-bottom:10px;">Empty</p>
+            <button class="pixel-btn small-btn success new-btn" data-slot="${slot}">NEW GAME</button>
+        `;
+    }
+    savesList.appendChild(slotDiv);
+  });
+
+  document.querySelectorAll('.load-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+          const slotId = e.target.getAttribute('data-slot');
+          startGame(slotId, saves[slotId]);
+      });
+  });
+
+  document.querySelectorAll('.new-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+          const slotId = e.target.getAttribute('data-slot');
+          startGame(slotId, null);
+      });
+  });
+}
+
+function startGame(slotId, saveData) {
+    window.currentSaveSlot = slotId;
+    document.getElementById('title-screen').classList.add('hidden');
+    document.getElementById('saves-section').classList.add('hidden');
+    document.getElementById('game-screen').classList.remove('hidden');
+    game = new Game(saveData);
+    game.start();
+}
 
 document.getElementById('restart-btn').addEventListener('click', () => {
   document.getElementById('death-screen').classList.add('hidden');
   document.getElementById('game-screen').classList.remove('hidden');
-  game = new Game();
+  const penalizedData = game.serialize();
+  game = new Game(penalizedData);
   game.start();
+});
+
+document.getElementById('menu-btn').addEventListener('click', () => {
+    document.getElementById('pause-overlay').classList.remove('hidden');
+});
+
+document.getElementById('pause-continue-btn').addEventListener('click', () => {
+    document.getElementById('pause-overlay').classList.add('hidden');
+});
+
+document.getElementById('pause-save-btn').addEventListener('click', () => {
+    if (game && window.currentSaveSlot) {
+        saveGameSlot(window.currentUser, window.currentSaveSlot, game.serialize());
+        addNotif(game, '💾 Saved!', '#2ecc71');
+        document.getElementById('pause-overlay').classList.add('hidden');
+    }
+});
+
+document.getElementById('pause-main-menu-btn').addEventListener('click', () => {
+    document.getElementById('pause-overlay').classList.add('hidden');
+    document.getElementById('game-screen').classList.add('hidden');
+    document.getElementById('title-screen').classList.remove('hidden');
+    document.getElementById('saves-section').classList.remove('hidden');
+    game.running = false;
+    renderSavesMenu();
 });
 
 // Initialize authentication state listener
 initAuth((user) => {
+  window.currentUser = user;
   if (user) {
     // User is signed in
     loginContainer.classList.add('hidden');

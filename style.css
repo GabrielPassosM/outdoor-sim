@@ -430,7 +430,8 @@ body {
 #hunting-overlay,
 #bonfire-overlay,
 #cook-overlay,
-#eat-overlay {
+#eat-overlay,
+#pause-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
@@ -444,7 +445,8 @@ body {
 #hunting-overlay.hidden,
 #bonfire-overlay.hidden,
 #cook-overlay.hidden,
-#eat-overlay.hidden {
+#eat-overlay.hidden,
+#pause-overlay.hidden {
   display: none;
 }
 

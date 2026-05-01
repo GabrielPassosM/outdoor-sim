@@ -18,6 +18,14 @@ const firebaseConfig = {
 
 let app, auth, provider;
 
+export function getApp() {
+    return app;
+}
+
+export function getCurrentUser() {
+    return auth ? auth.currentUser : null;
+}
+
 export function initAuth(onUserChange) {
     try {
         app = initializeApp(firebaseConfig);

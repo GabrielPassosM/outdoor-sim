@@ -36,6 +36,16 @@
           <button id="logout-btn" class="pixel-btn danger small-btn" style="margin-top:10px;">LOGOUT</button>
         </div>
       </div>
+
+      <!-- SAVES SECTION -->
+      <div id="saves-section" class="hidden">
+        <h2 class="pixel-title" style="margin-bottom:20px; font-size: 1.2rem;">SELECT SAVE</h2>
+        <p id="saves-loading-text">Loading saves...</p>
+        <div id="saves-list" style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+          <!-- Slots injected dynamically -->
+        </div>
+        <button id="back-to-profile-btn" class="pixel-btn secondary-btn" style="margin-top:20px;">◀ BACK</button>
+      </div>
     </div>
   </div>
 
@@ -65,6 +75,7 @@
         <span id="warmth-val" class="stat-num">100</span>
       </div>
       <div class="hud-right">
+        <button id="menu-btn" class="pixel-btn small-btn" style="margin-right: 15px; font-size: 0.6rem; padding: 5px 10px;">☰ MENU</button>
         <div class="hud-info">💰 <span id="money-display">0</span> coins</div>
         <div class="hud-info">📍 <span id="location-display">WILDERNESS</span></div>
         <div class="hud-info">⏱ Day <span id="day-display">1</span></div>
@@ -238,6 +249,18 @@
       <p id="death-reason" class="death-reason"></p>
       <p>Survived <span id="death-days">0</span> days</p>
       <button id="restart-btn" class="pixel-btn danger">↺ TRY AGAIN</button>
+    </div>
+  </div>
+
+  <!-- PAUSE OVERLAY -->
+  <div id="pause-overlay" class="hidden">
+    <div id="pause-box" style="background: #111; border: 4px solid #fff; padding: 30px; text-align: center; color: #fff; width: 300px; box-shadow: 10px 10px 0px rgba(0,0,0,0.5);">
+      <h2 class="pixel-title">PAUSED</h2>
+      <div style="display:flex; flex-direction:column; gap:15px; margin-top:30px;">
+        <button id="pause-continue-btn" class="pixel-btn success">▶ CONTINUE</button>
+        <button id="pause-save-btn" class="pixel-btn">💾 SAVE GAME</button>
+        <button id="pause-main-menu-btn" class="pixel-btn danger">✖ MAIN MENU</button>
+      </div>
     </div>
   </div>
 
