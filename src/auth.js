@@ -8,12 +8,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyCkJp3OBDhNAeFxReKBAf4rpz3p081aWA8",
-    authDomain: "outdoor-sim.firebaseapp.com",
-    projectId: "outdoor-sim",
-    storageBucket: "outdoor-sim.firebasestorage.app",
-    messagingSenderId: "848451898538",
-    appId: "1:848451898538:web:d2495f155e4fafe63114d3"
+    apiKey: "AIzaSyDVI_t3DQY1tkO1w8MbJsAns26HEQC1YWM",
+    authDomain: "outdoorsimulator-fe87b.firebaseapp.com",
+    projectId: "outdoorsimulator-fe87b",
+    storageBucket: "outdoorsimulator-fe87b.firebasestorage.app",
+    messagingSenderId: "919848853920",
+    appId: "1:919848853920:web:b540048e8f0b019eb4c4c5",
+    measurementId: "G-H70DS903EF"
 };
 
 let app, auth, provider;
