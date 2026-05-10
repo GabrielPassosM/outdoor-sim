@@ -22,7 +22,7 @@ const SHOP_ITEMS = {
     wood_bundle: { price: 6 },
 };
 
-exports.saveGame = onCall(async (request) => {
+exports.saveGame = onCall({ invoker: 'public' }, async (request) => {
     const uid = request.auth?.uid;
     if (!uid) {
         throw new HttpsError('unauthenticated', 'User must be logged in to save.');
@@ -60,7 +60,7 @@ exports.saveGame = onCall(async (request) => {
     return { success: true, timestamp: saveData.timestamp, money: saveData.player.money };
 });
 
-exports.processTransaction = onCall(async (request) => {
+exports.processTransaction = onCall({ invoker: 'public' }, async (request) => {
     const uid = request.auth?.uid;
     if (!uid) {
         throw new HttpsError('unauthenticated', 'User must be logged in to transact.');
