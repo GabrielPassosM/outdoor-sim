@@ -38,14 +38,17 @@ export async function saveGameSlot(user, slotId, data) {
     }
 
     // Authenticated user
-    const db = getFirestore(getApp());
-    const docRef = doc(db, "saves", user.uid);
+    const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.10.0/firebase-functions.js");
+    const functions = getFunctions(getApp());
+    const saveGame = httpsCallable(functions, 'saveGame');
+    
     try {
-        const docSnap = await getDoc(docRef);
-        let saves = docSnap.exists() ? docSnap.data() : { slot_1: null, slot_2: null, slot_3: null };
-        saves[slotId] = data;
-        await setDoc(docRef, saves);
+        const result = await saveGame({ slotId, saveData: data });
+        // The server might return the trusted money amount
+        if (result.data && result.data.money !== undefined) {
+            data.player.money = result.data.money;
+        }
     } catch (e) {
-        console.error("Error saving game:", e);
+        console.error("Error saving game securely:", e);
     }
 }

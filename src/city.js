@@ -1,6 +1,16 @@
 import { ANIMALS, SHOP_ITEMS } from './data.js';
 import { updateHUD, updateActionButtons, updateInventory, log, addNotif } from './ui.js';
 import { DEVELOPMENT_MODE } from './settings.js';
+import { getApp } from './auth.js';
+
+let processTransactionFn = null;
+async function getProcessTransaction() {
+    if (!processTransactionFn) {
+        const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.10.0/firebase-functions.js");
+        processTransactionFn = httpsCallable(getFunctions(getApp()), 'processTransaction');
+    }
+    return processTransactionFn;
+}
 
 export function setupCity(G) {
     // Tab buttons
@@ -138,12 +148,35 @@ export function renderShop(G) {
         <button class="pixel-btn success" style="font-size:0.5rem;padding:10px 14px">
           SELL ALL<br><span style="font-size:0.45rem; color:var(--gold);">💰${item.price * qty}</span>
         </button>`;
-            div.querySelector('button').addEventListener('click', () => {
-                const earned = item.price * G.player.inventory[item.key];
-                G.player.money += earned;
-                G.player.inventory[item.key] = 0;
-                log(`Sold all ${item.label} for ${earned} coins!`, 'success');
-                addNotif(G, `+${earned} 💰`, '#f1c40f');
+            div.querySelector('button').addEventListener('click', async (e) => {
+                const btn = e.currentTarget;
+                if (window.currentUser && window.currentSaveSlot) {
+                    btn.innerHTML = 'LOADING...';
+                    btn.disabled = true;
+                    try {
+                        const processTransaction = await getProcessTransaction();
+                        const result = await processTransaction({
+                            slotId: window.currentSaveSlot,
+                            action: 'sell',
+                            itemKey: item.key,
+                            qty: G.player.inventory[item.key],
+                            currentClientState: { inventory: G.player.inventory }
+                        });
+                        G.player = result.data.player;
+                        const earned = item.price * qty;
+                        log(`Sold all ${item.label} for ${earned} coins securely!`, 'success');
+                        addNotif(G, `+${earned} 💰`, '#f1c40f');
+                    } catch (err) {
+                        console.error(err);
+                        log('Transaction failed on server.', 'danger');
+                    }
+                } else {
+                    const earned = item.price * G.player.inventory[item.key];
+                    G.player.money += earned;
+                    G.player.inventory[item.key] = 0;
+                    log(`Sold all ${item.label} for ${earned} coins!`, 'success');
+                    addNotif(G, `+${earned} 💰`, '#f1c40f');
+                }
                 updateHUD(G);
                 updateInventory(G);
                 renderShop(G);
@@ -169,11 +202,34 @@ export function renderShop(G) {
         <button class="pixel-btn ${canAfford ? 'success' : ''}" style="font-size:0.5rem;padding:10px 14px" ${canAfford ? '' : 'disabled'}>
           BUY<br><span style="font-size:0.45rem; color:var(--gold);">💰${item.price}</span>
         </button>`;
-            div.querySelector('button').addEventListener('click', () => {
+            div.querySelector('button').addEventListener('click', async (e) => {
                 if (G.player.money < item.price) return;
-                const result = item.action(G);
-                if (result === false) return;
-                G.player.money -= item.price;
+                const btn = e.currentTarget;
+                if (window.currentUser && window.currentSaveSlot) {
+                    btn.innerHTML = 'LOADING...';
+                    btn.disabled = true;
+                    try {
+                        const processTransaction = await getProcessTransaction();
+                        const result = await processTransaction({
+                            slotId: window.currentSaveSlot,
+                            action: 'buy',
+                            itemKey: key,
+                            currentClientState: { inventory: G.player.inventory }
+                        });
+                        G.player = result.data.player;
+                        log(`Bought ${item.name} securely.`, 'success');
+                    } catch (err) {
+                        console.error(err);
+                        log('Transaction failed on server.', 'danger');
+                        // In case of failure, don't update local UI as if it succeeded
+                        renderShop(G);
+                        return;
+                    }
+                } else {
+                    const result = item.action(G);
+                    if (result === false) return;
+                    G.player.money -= item.price;
+                }
                 updateHUD(G);
                 updateInventory(G);
                 renderShop(G);

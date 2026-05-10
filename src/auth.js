@@ -27,9 +27,20 @@ export function getCurrentUser() {
     return auth ? auth.currentUser : null;
 }
 
-export function initAuth(onUserChange) {
+import { DEVELOPMENT_MODE } from './settings.js';
+
+export async function initAuth(onUserChange) {
     try {
         app = initializeApp(firebaseConfig);
+        
+        if (DEVELOPMENT_MODE) {
+            const { getFirestore, connectFirestoreEmulator } = await import("https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js");
+            const { getFunctions, connectFunctionsEmulator } = await import("https://www.gstatic.com/firebasejs/10.10.0/firebase-functions.js");
+            connectFirestoreEmulator(getFirestore(app), '127.0.0.1', 8080);
+            connectFunctionsEmulator(getFunctions(app), '127.0.0.1', 5001);
+            console.log("Connected to Firebase Local Emulators");
+        }
+
         auth = getAuth(app);
         provider = new GoogleAuthProvider();
 
